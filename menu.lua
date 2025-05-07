@@ -9,9 +9,11 @@ local subScreen = nil -- Sous-écran pour le bouton "Battle"
 
 -- Liste des onglets avec leurs icônes
 local buttons = {
-    {name = "Combat", icon = "combat_icon.png"},
+    {name = "Boutique", icon = "boutique_icon.png"};
     {name = "Collection", icon = "collection_icon.png"},
-    {name = "Boutique", icon = "boutique_icon.png"}
+    {name = "Combat", icon = "combat_icon.png"},
+    {name = "Social", icon = "social_icon.png"},
+    {name = "Leaderboard", icon = "leaderboard_icon.png"}
 }
 local battleButton = {x = 170, y = 350, width = 140, height = 80} -- Bouton "Battle"
 
@@ -86,6 +88,10 @@ function menu.draw()
         love.graphics.printf("Collection", 0, 300, 480, "center")
     elseif currentScreen == "boutique" then
         love.graphics.printf("Boutique", 0, 300, 480, "center")
+    elseif currentScreen == "social" then
+        love.graphics.printf("Social", 0, 300, 480, "center")
+    elseif currentScreen == "leadeboard" then
+        love.graphics.printf("Classement", 0, 300, 480, "center")
     end
 
     -- Barre du bas (toute la largeur)
