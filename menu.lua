@@ -9,11 +9,11 @@ local subScreen = nil -- Sous-écran pour le bouton "Battle"
 
 -- Liste des onglets avec leurs icônes
 local buttons = {
-    {name = "Boutique", icon = "boutique_icon.png"},
-    {name = "Collection", icon = "collection_icon.png"},
-    {name = "Combat", icon = "combat_icon.png"},
-    {name = "Social", icon = "social_icon.png"},
-    {name = "Leaderboard", icon = "leaderboard_icon.png"}
+    {name = "Boutique", icon = "assets/boutique_icon.png"},
+    {name = "Collection", icon = "assets/collection_icon.png"},
+    {name = "Combat", icon = "assets/combat_icon.png"},
+    {name = "Social", icon = "assets/social_icon.png"},
+    {name = "Leaderboard", icon = "assets/leaderboard_icon.png"}
 }
 local battleButton = {x = 170, y = 480, width = 140, height = 80} -- Bouton "Battle" repositionné
 
