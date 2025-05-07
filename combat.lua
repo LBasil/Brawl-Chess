@@ -11,6 +11,7 @@ local playerPieces = {}
 local enemyPieces = {}
 local selectedPiece = nil
 local socket = require("socket")
+local errorMessage = nil
 
 function combat.load()
     for i = 1, boardSize do
@@ -23,28 +24,106 @@ end
 
 function combat.enterCombat()
     local host, port = "localhost", 50000
-    local tcp = assert(socket.tcp())
-    tcp:settimeout(5)
-    assert(tcp:connect(host, port))
-    local answer = tcp:receive()
-    tcp:close()
-
-    local pions = json.decode(answer)
-    playerPieces = {}
-    enemyPieces = {}
-    for i = 1, boardSize do
-        for j = 1, boardSize do
-            board[i][j] = nil
+    local maxAttempts = 3
+    local attempt = 1
+    while attempt <= maxAttempts do
+        local tcp = socket.tcp()
+        if not tcp then
+            errorMessage = "Erreur : impossible de créer la socket"
+            return
         end
-    end
-    for _, piece in ipairs(pions) do
-        if piece.name == "Tourelle" then
-            table.insert(playerPieces, piece)
+        tcp:settimeout(10) -- Timeout de 10 secondes
+        local ok, err = tcp:connect(host, port)
+        if not ok then
+            errorMessage = "Erreur de connexion au serveur (tentative " .. attempt .. "/" .. maxAttempts .. ") : " .. (err or "inconnu")
+            tcp:close()
         else
-            table.insert(enemyPieces, piece)
+            -- Envoyer une requête vide pour déclencher la réponse du serveur
+            local sent, sendErr = tcp:send("\n")
+            if not sent then
+                errorMessage = "Erreur d'envoi au serveur (tentative " .. attempt .. "/" .. maxAttempts .. ") : " .. (sendErr or "inconnu")
+                tcp:close()
+            else
+                love.timer.sleep(0.1) -- Attendre 100ms pour s'assurer que le serveur a lu la requête
+                local answer, recvErr = tcp:receive("*l") -- Lire une ligne complète
+                print("Réponse reçue (tentative " .. attempt .. "): " .. (answer or "nil") .. " (erreur: " .. (recvErr or "aucune") .. ")")
+                tcp:close()
+                if not answer then
+                    errorMessage = "Erreur : aucune réponse du serveur (tentative " .. attempt .. "/" .. maxAttempts .. ") : " .. (recvErr or "inconnu")
+                else
+                    local pions, pos, decodeErr = json.decode(answer)
+                    if not pions then
+                        errorMessage = "Erreur de décodage JSON (tentative " .. attempt .. "/" .. maxAttempts .. ") : " .. (decodeErr or "inconnu")
+                    else
+                        errorMessage = nil
+                        playerPieces = {}
+                        enemyPieces = {}
+                        for i = 1, boardSize do
+                            for j = 1, boardSize do
+                                board[i][j] = nil
+                            end
+                        end
+                        for _, piece in ipairs(pions) do
+                            if piece.name == "Tourelle" then
+                                table.insert(playerPieces, piece)
+                            else
+                                table.insert(enemyPieces, piece)
+                            end
+                            board[piece.x][piece.y] = piece
+                        end
+                        return -- Succès, sortir de la boucle
+                    end
+                end
+            end
         end
-        board[piece.x][piece.y] = piece
+        attempt = attempt + 1
+        if attempt <= maxAttempts then
+            love.timer.sleep(1) -- Attendre 1 seconde avant de réessayer
+        end
     end
+end
+
+function combat.sendMove(piece, targetX, targetY)
+    local host, port = "localhost", 50000
+    local tcp = socket.tcp()
+    if not tcp then
+        errorMessage = "Erreur : impossible de créer la socket"
+        return { success = false, error = errorMessage }
+    end
+    tcp:settimeout(10)
+    local ok, err = tcp:connect(host, port)
+    if not ok then
+        errorMessage = "Erreur de connexion au serveur : " .. (err or "inconnu")
+        tcp:close()
+        return { success = false, error = errorMessage }
+    end
+    local request = {
+        action = "move",
+        piece = { name = piece.name, x = piece.x, y = piece.y },
+        target = { x = targetX, y = targetY }
+    }
+    local requestJson = json.encode(request)
+    local sent, sendErr = tcp:send(requestJson .. "\n")
+    if not sent then
+        errorMessage = "Erreur d'envoi au serveur : " .. (sendErr or "inconnu")
+        tcp:close()
+        return { success = false, error = errorMessage }
+    end
+    love.timer.sleep(0.1) -- Attendre 100ms pour s'assurer que le serveur a lu la requête
+    local answer, recvErr = tcp:receive("*l")
+    print("Réponse reçue (sendMove): " .. (answer or "nil") .. " (erreur: " .. (recvErr or "aucune") .. ")")
+    tcp:close()
+    if not answer then
+        errorMessage = "Erreur : aucune réponse du serveur : " .. (recvErr or "inconnu")
+        return { success = false, error = errorMessage }
+    end
+    local response, pos, decodeErr = json.decode(answer)
+    if not response then
+        errorMessage = "Erreur de décodage JSON : " .. (decodeErr or "inconnu")
+        return { success = false, error = errorMessage }
+    end
+    errorMessage = response.error or nil
+    return response
 end
 
 function combat.update(dt)
@@ -92,10 +171,10 @@ function combat.draw()
             love.graphics.printf(piece.name .. "\n" .. math.floor(piece.hp), boardX + (piece.x-1) * tileSize, boardY + (piece.y-1) * tileSize, tileSize, "center")
         end
     end
-end
-
-function datetime()
-    return os.date("%Y-%m-%d %H:%M:%S")
+    if errorMessage then
+        love.graphics.setColor(1, 0, 0)
+        love.graphics.printf(errorMessage, 0, 50, 480, "center")
+    end
 end
 
 function combat.mousepressed(x, y, button)
@@ -104,11 +183,12 @@ function combat.mousepressed(x, y, button)
         local boardRow = math.floor((y - boardY) / tileSize) + 1
         if boardCol >= 1 and boardCol <= boardSize and boardRow >= 1 and boardRow <= boardSize then
             if selectedPiece then
-                if board[boardCol][boardRow] == nil then
+                local response = combat.sendMove(selectedPiece, boardCol, boardRow)
+                if response.success then
                     board[selectedPiece.x][selectedPiece.y] = nil
-                    selectedPiece.x = boardCol
-                    selectedPiece.y = boardRow
-                    board[boardCol][boardRow] = selectedPiece
+                    selectedPiece.x = response.piece.x
+                    selectedPiece.y = response.piece.y
+                    board[selectedPiece.x][selectedPiece.y] = selectedPiece
                     selectedPiece = nil
                 else
                     selectedPiece = nil
