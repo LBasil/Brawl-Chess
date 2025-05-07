@@ -9,7 +9,7 @@ local subScreen = nil -- Sous-écran pour le bouton "Battle"
 
 -- Liste des onglets avec leurs icônes
 local buttons = {
-    {name = "Boutique", icon = "boutique_icon.png"};
+    {name = "Boutique", icon = "boutique_icon.png"},
     {name = "Collection", icon = "collection_icon.png"},
     {name = "Combat", icon = "combat_icon.png"},
     {name = "Social", icon = "social_icon.png"},
@@ -21,6 +21,7 @@ function menu.load()
     love.graphics.setBackgroundColor(0.1, 0.2, 0.4) -- Fond bleu foncé
     menu.titleFont = love.graphics.newFont(36) -- Police pour le titre
     menu.buttonFont = love.graphics.newFont(20) -- Police pour le texte
+    menu.smallFont = love.graphics.newFont(16) -- Police pour les barres d'argent
     -- Charger les icônes pour chaque onglet
     for _, btn in ipairs(buttons) do
         btn.image = love.graphics.newImage(btn.icon)
@@ -30,12 +31,12 @@ end
 
 function menu.update(dt)
     hoverButton = nil -- Réinitialiser le bouton survolé
-    local buttonWidth = 480 / #buttons -- Largeur de chaque bouton (480 / nombre d'onglets)
+    local buttonWidth = 480 / #buttons -- Largeur de chaque bouton (480 / 5 onglets = 96px)
     -- Positionner chaque bouton dans la barre en bas
     for i, btn in ipairs(buttons) do
-        btn.x = (i-1) * buttonWidth -- Position x (0, 160, 320 pour 3 onglets)
+        btn.x = (i-1) * buttonWidth -- Position x (0, 96, 192, 288, 384)
         btn.y = 720 -- Position y de la barre
-        btn.width = buttonWidth -- Largeur (160px pour 3 onglets)
+        btn.width = buttonWidth -- Largeur (96px)
         btn.height = 80 -- Hauteur de la barre
         -- Vérifier si la souris survole le bouton
         local mx, my = love.mouse.getPosition()
@@ -63,10 +64,46 @@ function menu.draw()
         end
     end
 
-    -- Titre "Brawl Chess"
+    -- Haut gauche : Avatar et barre d'XP
+    -- Avatar (cercle pour l'instant)
+    love.graphics.setColor(0.8, 0.8, 0.8) -- Gris clair pour le fond
+    love.graphics.circle("fill", 35, 35, 25) -- Cercle de 50px de diamètre à x=10, y=10
+    love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
+    love.graphics.circle("line", 35, 35, 25)
+    -- Barre d'XP
+    love.graphics.setColor(0.5, 0.5, 0.5) -- Fond gris
+    love.graphics.rectangle("fill", 70, 25, 150, 20, 5, 5)
+    love.graphics.setColor(0, 1, 0) -- Jauge verte (70% remplie)
+    love.graphics.rectangle("fill", 70, 25, 150 * 0.7, 20, 5, 5)
+    love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
+    love.graphics.rectangle("line", 70, 25, 150, 20, 5, 5)
+
+    -- Haut droit : Argent normal (pièces) et argent payant (gemmes)
+    -- Argent normal (pièces)
+    love.graphics.setColor(0.3, 0.3, 0.3) -- Fond gris foncé
+    love.graphics.rectangle("fill", 300, 10, 100, 30, 5, 5)
+    love.graphics.setColor(1, 0.8, 0) -- Icône de pièce (cercle jaune)
+    love.graphics.circle("fill", 315, 25, 10)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(menu.smallFont)
+    love.graphics.printf("1000", 335, 15, 60, "center") -- Exemple : 1000 pièces
+    love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
+    love.graphics.rectangle("line", 300, 10, 100, 30, 5, 5)
+    -- Argent payant (gemmes)
+    love.graphics.setColor(0.3, 0.3, 0.3) -- Fond gris foncé
+    love.graphics.rectangle("fill", 410, 10, 60, 30, 5, 5)
+    love.graphics.setColor(0.6, 0, 1) -- Icône de gemme (losange violet)
+    love.graphics.polygon("fill", 425, 25, 435, 15, 445, 25, 435, 35)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(menu.smallFont)
+    love.graphics.printf("50", 445, 15, 25, "center") -- Exemple : 50 gemmes
+    love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
+    love.graphics.rectangle("line", 410, 10, 60, 30, 5, 5)
+
+    -- Titre "Brawl Chess" (déplacé plus bas pour laisser de la place)
     love.graphics.setFont(menu.titleFont)
     love.graphics.setColor(1, 0.8, 0)
-    love.graphics.printf("Brawl Chess", 0, 50, 480, "center")
+    love.graphics.printf("Brawl Chess", 0, 70, 480, "center")
 
     -- Afficher l'écran actuel
     love.graphics.setFont(menu.buttonFont)
@@ -90,7 +127,7 @@ function menu.draw()
         love.graphics.printf("Boutique", 0, 300, 480, "center")
     elseif currentScreen == "social" then
         love.graphics.printf("Social", 0, 300, 480, "center")
-    elseif currentScreen == "leadeboard" then
+    elseif currentScreen == "leaderboard" then
         love.graphics.printf("Classement", 0, 300, 480, "center")
     end
 
