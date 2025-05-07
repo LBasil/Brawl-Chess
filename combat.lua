@@ -1,4 +1,4 @@
-require("dkjson")
+require("lib.dkjson")
 
 combat = {}
 

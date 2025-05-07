@@ -1,5 +1,4 @@
--- Charger le fichier menu.lua
-require("menu")
+require("views.menu")
 
 function love.load()
     -- Appeler la fonction load du menu

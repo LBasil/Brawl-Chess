@@ -1,11 +1,15 @@
 require("combat")
+require("views.combat_menu")
+require("views.boutique")
+require("views.collection")
+require("views.social")
+require("views.leaderboard")
 
 menu = {}
 
 -- Initialiser directement sur l'onglet "Combat" (menu d'accueil)
 local currentScreen = "combat"
 local hoverButton = nil
-local subScreen = nil -- Sous-écran pour le bouton "Battle"
 
 -- Liste des onglets avec leurs icônes
 local buttons = {
@@ -15,7 +19,6 @@ local buttons = {
     {name = "Social", icon = "assets/social_icon.png"},
     {name = "Leaderboard", icon = "assets/leaderboard_icon.png"}
 }
-local battleButton = {x = 170, y = 480, width = 140, height = 80} -- Bouton "Battle" repositionné
 
 function menu.load()
     love.graphics.setBackgroundColor(0.1, 0.2, 0.4) -- Fond bleu foncé
@@ -26,7 +29,13 @@ function menu.load()
     for _, btn in ipairs(buttons) do
         btn.image = love.graphics.newImage(btn.icon)
     end
-    combat.load() -- Initialiser le mode Combat
+    -- Initialiser les modules des onglets
+    combat.load()
+    combat_menu.load()
+    boutique.load()
+    collection.load()
+    social.load()
+    leaderboard.load()
 end
 
 function menu.update(dt)
@@ -44,14 +53,17 @@ function menu.update(dt)
             hoverButton = btn
         end
     end
-    -- Vérifier si la souris survole le bouton "Battle"
-    local mx, my = love.mouse.getPosition()
-    if mx >= battleButton.x and mx <= battleButton.x + battleButton.width and my >= battleButton.y and my <= battleButton.y + battleButton.height then
-        hoverButton = {name = "battle"}
-    end
-    -- Mettre à jour le mode Combat uniquement si on est dans le sous-écran "battle"
-    if currentScreen == "combat" and subScreen == "battle" then
-        combat.update(dt)
+    -- Déléguer la mise à jour au module correspondant
+    if currentScreen == "combat" then
+        combat_menu.update(dt)
+    elseif currentScreen == "boutique" then
+        boutique.update(dt)
+    elseif currentScreen == "collection" then
+        collection.update(dt)
+    elseif currentScreen == "social" then
+        social.update(dt)
+    elseif currentScreen == "leaderboard" then
+        leaderboard.update(dt)
     end
 end
 
@@ -108,42 +120,15 @@ function menu.draw()
     love.graphics.setFont(menu.buttonFont)
     love.graphics.setColor(1, 1, 1)
     if currentScreen == "combat" then
-        if subScreen == nil then
-            -- Échiquier stylisé (8x8 cases, 40x40 pixels chacune)
-            local boardSize = 320 -- 8 cases * 40 pixels
-            local boardX = (480 - boardSize) / 2 -- Centré : (480-320)/2 = 80
-            local boardY = 150 -- Positionné après le titre et les éléments en haut
-            -- Bordure dorée autour de l'échiquier
-            love.graphics.setColor(1, 0.8, 0)
-            love.graphics.rectangle("fill", boardX - 5, boardY - 5, boardSize + 10, boardSize + 10)
-            -- Dessiner les cases
-            for i = 1, 8 do
-                for j = 1, 8 do
-                    if (i + j) % 2 == 0 then
-                        love.graphics.setColor(1, 1, 1) -- Case blanche
-                    else
-                        love.graphics.setColor(0, 0, 0) -- Case noire
-                    end
-                    love.graphics.rectangle("fill", boardX + (i-1) * 40, boardY + (j-1) * 40, 40, 40)
-                end
-            end
-
-            -- Bouton "Battle" en dessous de l'échiquier, centré
-            love.graphics.setColor(1, 0.84, 0)
-            love.graphics.rectangle("fill", battleButton.x - 10, battleButton.y - 10, battleButton.width + 20, battleButton.height + 20, 10, 10)
-            love.graphics.setColor(0, 0, 0)
-            love.graphics.printf("Battle", battleButton.x, battleButton.y + 30, battleButton.width, "center")
-        elseif subScreen == "battle" then
-            combat.draw() -- Afficher le plateau
-        end
-    elseif currentScreen == "collection" then
-        love.graphics.printf("Collection", 0, 300, 480, "center")
+        combat_menu.draw()
     elseif currentScreen == "boutique" then
-        love.graphics.printf("Boutique", 0, 300, 480, "center")
+        boutique.draw()
+    elseif currentScreen == "collection" then
+        collection.draw()
     elseif currentScreen == "social" then
-        love.graphics.printf("Social", 0, 300, 480, "center")
+        social.draw()
     elseif currentScreen == "leaderboard" then
-        love.graphics.printf("Classement", 0, 300, 480, "center")
+        leaderboard.draw()
     end
 
     -- Barre du bas (toute la largeur)
@@ -176,19 +161,19 @@ function menu.mousepressed(x, y, button)
         for _, btn in ipairs(buttons) do
             if x >= btn.x and x <= btn.x + btn.width and y >= btn.y and y <= btn.y + btn.height then
                 currentScreen = string.lower(btn.name)
-                if currentScreen == "combat" then
-                    subScreen = nil -- Réinitialiser le sous-écran (pas d'appel au serveur ici)
-                end
             end
         end
-        -- Vérifier si le bouton "Battle" est cliqué
-        if currentScreen == "combat" and subScreen == nil then
-            if x >= battleButton.x and x <= battleButton.x + battleButton.width and y >= battleButton.y and y <= battleButton.y + battleButton.height then
-                subScreen = "battle"
-                combat.enterCombat() -- Appeler le serveur uniquement ici
-            end
-        elseif currentScreen == "combat" and subScreen == "battle" then
-            combat.mousepressed(x, y, button)
+        -- Déléguer les clics au module correspondant
+        if currentScreen == "combat" then
+            combat_menu.mousepressed(x, y, button)
+        elseif currentScreen == "boutique" then
+            boutique.mousepressed(x, y, button)
+        elseif currentScreen == "collection" then
+            collection.mousepressed(x, y, button)
+        elseif currentScreen == "social" then
+            social.mousepressed(x, y, button)
+        elseif currentScreen == "leaderboard" then
+            leaderboard.mousepressed(x, y, button)
         end
     end
 end
