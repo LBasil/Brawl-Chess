@@ -15,7 +15,7 @@ local buttons = {
     {name = "Social", icon = "social_icon.png"},
     {name = "Leaderboard", icon = "leaderboard_icon.png"}
 }
-local battleButton = {x = 170, y = 350, width = 140, height = 80} -- Bouton "Battle"
+local battleButton = {x = 170, y = 480, width = 140, height = 80} -- Bouton "Battle" repositionné
 
 function menu.load()
     love.graphics.setBackgroundColor(0.1, 0.2, 0.4) -- Fond bleu foncé
@@ -65,7 +65,6 @@ function menu.draw()
     end
 
     -- Haut gauche : Avatar et barre d'XP
-    -- Avatar (cercle pour l'instant)
     love.graphics.setColor(0.8, 0.8, 0.8) -- Gris clair pour le fond
     love.graphics.circle("fill", 35, 35, 25) -- Cercle de 50px de diamètre à x=10, y=10
     love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
@@ -100,7 +99,7 @@ function menu.draw()
     love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
     love.graphics.rectangle("line", 410, 10, 60, 30, 5, 5)
 
-    -- Titre "Brawl Chess" (déplacé plus bas pour laisser de la place)
+    -- Titre "Brawl Chess"
     love.graphics.setFont(menu.titleFont)
     love.graphics.setColor(1, 0.8, 0)
     love.graphics.printf("Brawl Chess", 0, 70, 480, "center")
@@ -110,14 +109,30 @@ function menu.draw()
     love.graphics.setColor(1, 1, 1)
     if currentScreen == "combat" then
         if subScreen == nil then
-            -- Menu d'accueil avec bouton "Battle"
+            -- Échiquier stylisé (8x8 cases, 40x40 pixels chacune)
+            local boardSize = 320 -- 8 cases * 40 pixels
+            local boardX = (480 - boardSize) / 2 -- Centré : (480-320)/2 = 80
+            local boardY = 150 -- Positionné après le titre et les éléments en haut
+            -- Bordure dorée autour de l'échiquier
+            love.graphics.setColor(1, 0.8, 0)
+            love.graphics.rectangle("fill", boardX - 5, boardY - 5, boardSize + 10, boardSize + 10)
+            -- Dessiner les cases
+            for i = 1, 8 do
+                for j = 1, 8 do
+                    if (i + j) % 2 == 0 then
+                        love.graphics.setColor(1, 1, 1) -- Case blanche
+                    else
+                        love.graphics.setColor(0, 0, 0) -- Case noire
+                    end
+                    love.graphics.rectangle("fill", boardX + (i-1) * 40, boardY + (j-1) * 40, 40, 40)
+                end
+            end
+
+            -- Bouton "Battle" en dessous de l'échiquier, centré
             love.graphics.setColor(1, 0.84, 0)
             love.graphics.rectangle("fill", battleButton.x - 10, battleButton.y - 10, battleButton.width + 20, battleButton.height + 20, 10, 10)
             love.graphics.setColor(0, 0, 0)
             love.graphics.printf("Battle", battleButton.x, battleButton.y + 30, battleButton.width, "center")
-            love.graphics.setColor(1, 0.8, 0)
-            love.graphics.circle("fill", 100, 150, 30)
-            love.graphics.rectangle("fill", 350, 150, 40, 40)
         elseif subScreen == "battle" then
             combat.draw() -- Afficher le plateau
         end
