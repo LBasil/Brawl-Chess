@@ -1,4 +1,4 @@
-require("lib.dkjson")
+local json = require("lib.dkjson")
 
 combat = {}
 
@@ -92,6 +92,10 @@ function combat.draw()
             love.graphics.printf(piece.name .. "\n" .. math.floor(piece.hp), boardX + (piece.x-1) * tileSize, boardY + (piece.y-1) * tileSize, tileSize, "center")
         end
     end
+end
+
+function datetime()
+    return os.date("%Y-%m-%d %H:%M:%S")
 end
 
 function combat.mousepressed(x, y, button)
