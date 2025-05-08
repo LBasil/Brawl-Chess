@@ -17,6 +17,10 @@ public class PieceRules {
             return false;
         }
 
+        // Calculer la distance de déplacement
+        int dx = Math.abs(targetX - currentX);
+        int dy = Math.abs(targetY - currentY);
+
         // Règles spécifiques selon le type de pion
         if (pieceName.equals("Tourelle")) {
             if (piece.getBoolean("hasMoved")) {
@@ -27,20 +31,16 @@ public class PieceRules {
             if (piece.getBoolean("hasUsedAction")) {
                 return false;
             }
-            String pieceType = piece.getString("type");
-            if (pieceType.equals("player")) {
-                return targetX == currentX && targetY == currentY + 1;
-            } else {
-                return targetX == currentX && targetY == currentY + 1;
-            }
+            // Déplacement d'une case horizontalement ou verticalement
+            return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
         } else if (pieceName.equals("Mur")) {
             if (piece.getBoolean("hasUsedAction")) {
                 return false;
             }
-            int dx = Math.abs(targetX - currentX);
-            int dy = Math.abs(targetY - currentY);
+            // Déplacement d'une case horizontalement ou verticalement
             return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
         } else if (pieceName.equals("Soldat")) {
+            // Déplacement d'une case vers l'avant (y+1 pour l'ennemi)
             return targetX == currentX && targetY == currentY + 1;
         }
         return false;
