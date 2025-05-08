@@ -8,6 +8,7 @@ public class GameServer {
     public static void main(String[] args) {
         GameState gameState = new GameState();
         Board board = new Board(gameState);
+        TurnManager turnManager = new TurnManager();
 
         try {
             ServerSocket serverSocket = new ServerSocket(50000);
@@ -42,20 +43,29 @@ public class GameServer {
                             int targetY = target.getInt("y") - 1;
 
                             JSONObject response = new JSONObject();
-                            if (board.isValidMove(pieceName, currentX, currentY, targetX, targetY)) {
-                                // Mettre à jour le plateau
-                                board.getBoard()[targetX][targetY] = board.getBoard()[currentX][currentY];
-                                board.getBoard()[currentX][currentY] = null;
-                                // Mettre à jour le gameState
-                                gameState.updateGameState(pieceName, currentX + 1, currentY + 1, targetX + 1, targetY + 1, false);
-                                response.put("success", true);
-                                response.put("piece", new JSONObject()
-                                    .put("name", pieceName)
-                                    .put("x", targetX + 1) // Convertir en indice 1-based
-                                    .put("y", targetY + 1));
-                            } else {
+                            if (!turnManager.isPlayerTurn()) {
                                 response.put("success", false);
-                                response.put("error", "Déplacement invalide");
+                                response.put("error", "Ce n'est pas votre tour");
+                            } else {
+                                if (board.isValidMove(pieceName, currentX, currentY, targetX, targetY)) {
+                                    // Mettre à jour le plateau
+                                    board.getBoard()[targetX][targetY] = board.getBoard()[currentX][currentY];
+                                    board.getBoard()[currentX][currentY] = null;
+                                    // Mettre à jour le gameState
+                                    gameState.updateGameState(pieceName, currentX + 1, currentY + 1, targetX + 1, targetY + 1, false);
+                                    response.put("success", true);
+                                    response.put("piece", new JSONObject()
+                                        .put("name", pieceName)
+                                        .put("x", targetX + 1)
+                                        .put("y", targetY + 1));
+                                    // Passer au tour suivant
+                                    turnManager.switchTurn();
+                                    response.put("currentTurn", turnManager.getCurrentTurn());
+                                } else {
+                                    response.put("success", false);
+                                    response.put("error", "Déplacement invalide");
+                                    response.put("currentTurn", turnManager.getCurrentTurn());
+                                }
                             }
                             out.println(response.toString());
                             out.flush();
@@ -71,21 +81,55 @@ public class GameServer {
                             int targetX = target != null ? target.getInt("x") - 1 : -1;
                             int targetY = target != null ? target.getInt("y") - 1 : -1;
 
-                            JSONObject response = ActionHandler.handleAction(pieceName, action, pieceX, pieceY, targetX, targetY, board, gameState);
+                            JSONObject response = new JSONObject();
+                            if (!turnManager.isPlayerTurn()) {
+                                response.put("success", false);
+                                response.put("error", "Ce n'est pas votre tour");
+                            } else {
+                                response = ActionHandler.handleAction(pieceName, action, pieceX, pieceY, targetX, targetY, board, gameState);
+                                if (response.getBoolean("success")) {
+                                    // Passer au tour suivant
+                                    turnManager.switchTurn();
+                                    response.put("currentTurn", turnManager.getCurrentTurn());
+                                } else {
+                                    response.put("currentTurn", turnManager.getCurrentTurn());
+                                }
+                            }
+                            out.println(response.toString());
+                            out.flush();
+                            System.out.println("Réponse envoyée : " + response.toString());
+                        } else if (type.equals("endEnemyTurn")) {
+                            // L'ennemi passe son tour
+                            JSONObject response = new JSONObject();
+                            if (turnManager.getCurrentTurn().equals("enemy")) {
+                                turnManager.switchTurn();
+                                response.put("success", true);
+                            } else {
+                                response.put("success", false);
+                                response.put("error", "Ce n'est pas le tour de l'ennemi");
+                            }
+                            response.put("currentTurn", turnManager.getCurrentTurn());
                             out.println(response.toString());
                             out.flush();
                             System.out.println("Réponse envoyée : " + response.toString());
                         }
                     } catch (JSONException e) {
-                        out.println("{\"success\":false,\"error\":\"Requête JSON invalide\"}");
+                        JSONObject response = new JSONObject();
+                        response.put("success", false);
+                        response.put("error", "Requête JSON invalide");
+                        response.put("currentTurn", turnManager.getCurrentTurn());
+                        out.println(response.toString());
                         out.flush();
                         System.out.println("Erreur JSON : " + e.getMessage());
                     }
                 } else {
                     // Réponse initiale si aucune requête ou requête vide
-                    out.println(gameState.getGameState().getJSONArray("pions").toString());
+                    JSONObject response = new JSONObject();
+                    response.put("pions", gameState.getGameState().getJSONArray("pions"));
+                    response.put("currentTurn", turnManager.getCurrentTurn());
+                    out.println(response.toString());
                     out.flush();
-                    System.out.println("Réponse envoyée (requête vide/null) : " + gameState.getGameState().getJSONArray("pions").toString());
+                    System.out.println("Réponse envoyée (requête vide/null) : " + response.toString());
                 }
 
                 clientSocket.close();

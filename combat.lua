@@ -14,6 +14,9 @@ local socket = require("socket")
 local errorMessage = nil
 local actionMode = nil -- "attack", "shield", "deploy"
 local turnStarted = false
+local currentTurn = "player" -- "player" ou "enemy"
+local enemyTurnTimer = 0
+local enemyTurnDuration = 1 -- Durée en secondes pour afficher le tour de l'ennemi
 
 function combat.load()
     for i = 1, boardSize do
@@ -53,8 +56,8 @@ function combat.enterCombat()
                 if not answer then
                     errorMessage = "Erreur : aucune réponse du serveur (tentative " .. attempt .. "/" .. maxAttempts .. ") : " .. (recvErr or "inconnu")
                 else
-                    local pions, pos, decodeErr = json.decode(answer)
-                    if not pions then
+                    local response, pos, decodeErr = json.decode(answer)
+                    if not response then
                         errorMessage = "Erreur de décodage JSON (tentative " .. attempt .. "/" .. maxAttempts .. ") : " .. (decodeErr or "inconnu")
                     else
                         errorMessage = nil
@@ -65,7 +68,7 @@ function combat.enterCombat()
                                 board[i][j] = nil
                             end
                         end
-                        for _, piece in ipairs(pions) do
+                        for _, piece in ipairs(response.pions) do
                             if piece.type == "player" then
                                 table.insert(playerPieces, piece)
                             else
@@ -73,6 +76,7 @@ function combat.enterCombat()
                             end
                             board[piece.x][piece.y] = piece
                         end
+                        currentTurn = response.currentTurn or "player"
                         return -- Succès, sortir de la boucle
                     end
                 end
@@ -125,6 +129,12 @@ function combat.sendMove(piece, targetX, targetY)
         return { success = false, error = errorMessage }
     end
     errorMessage = response.error or nil
+    if response.currentTurn then
+        currentTurn = response.currentTurn
+        if currentTurn == "enemy" then
+            enemyTurnTimer = enemyTurnDuration
+        end
+    end
     return response
 end
 
@@ -171,41 +181,93 @@ function combat.sendAction(piece, action, targetX, targetY)
         return { success = false, error = errorMessage }
     end
     errorMessage = response.error or nil
+    if response.currentTurn then
+        currentTurn = response.currentTurn
+        if currentTurn == "enemy" then
+            enemyTurnTimer = enemyTurnDuration
+        end
+    end
+    return response
+end
+
+function combat.sendEndEnemyTurn()
+    local host, port = "localhost", 50000
+    local tcp = socket.tcp()
+    if not tcp then
+        errorMessage = "Erreur : impossible de créer la socket"
+        return { success = false, error = errorMessage }
+    end
+    tcp:settimeout(10)
+    local ok, err = tcp:connect(host, port)
+    if not ok then
+        errorMessage = "Erreur de connexion au serveur : " .. (err or "inconnu")
+        tcp:close()
+        return { success = false, error = errorMessage }
+    end
+    local request = {
+        type = "endEnemyTurn"
+    }
+    local requestJson = json.encode(request)
+    local sent, sendErr = tcp:send(requestJson .. "\n")
+    if not sent then
+        errorMessage = "Erreur d'envoi au serveur : " .. (sendErr or "inconnu")
+        tcp:close()
+        return { success = false, error = errorMessage }
+    end
+    love.timer.sleep(0.1)
+    local answer, recvErr = tcp:receive("*l")
+    print("Réponse reçue (sendEndEnemyTurn): " .. (answer or "nil") .. " (erreur: " .. (recvErr or "aucune") .. ")")
+    tcp:close()
+    if not answer then
+        errorMessage = "Erreur : aucune réponse du serveur : " .. (recvErr or "inconnu")
+        return { success = false, error = errorMessage }
+    end
+    local response, pos, decodeErr = json.decode(answer)
+    if not response then
+        errorMessage = "Erreur de décodage JSON : " .. (decodeErr or "inconnu")
+        return { success = false, error = errorMessage }
+    end
+    errorMessage = response.error or nil
+    if response.currentTurn then
+        currentTurn = response.currentTurn
+    end
     return response
 end
 
 function combat.startTurn()
     -- Actions automatiques au début du tour (ex. Tourelle)
-    for _, piece in ipairs(playerPieces) do
-        if piece.name == "Tourelle" and piece.hp > 0 then
-            for _, enemy in ipairs(enemyPieces) do
-                if enemy.hp > 0 then
-                    local distance = math.abs(piece.x - enemy.x) + math.abs(piece.y - enemy.y)
-                    if distance <= piece.range then
-                        local response = combat.sendAction(piece, "attack", enemy.x, enemy.y)
-                        if response.success then
-                            enemy.hp = enemy.hp - piece.damage
-                            piece.hp = piece.hp - 1 -- Tourelle perd 1 PV après chaque attaque
-                            if enemy.hp <= 0 then
-                                board[enemy.x][enemy.y] = nil
-                                for i, e in ipairs(enemyPieces) do
-                                    if e == enemy then
-                                        table.remove(enemyPieces, i)
-                                        break
+    if currentTurn == "player" then
+        for _, piece in ipairs(playerPieces) do
+            if piece.name == "Tourelle" and piece.hp > 0 then
+                for _, enemy in ipairs(enemyPieces) do
+                    if enemy.hp > 0 then
+                        local distance = math.abs(piece.x - enemy.x) + math.abs(piece.y - enemy.y)
+                        if distance <= piece.range then
+                            local response = combat.sendAction(piece, "attack", enemy.x, enemy.y)
+                            if response.success then
+                                enemy.hp = enemy.hp - piece.damage
+                                piece.hp = piece.hp - 1 -- Tourelle perd 1 PV après chaque attaque
+                                if enemy.hp <= 0 then
+                                    board[enemy.x][enemy.y] = nil
+                                    for i, e in ipairs(enemyPieces) do
+                                        if e == enemy then
+                                            table.remove(enemyPieces, i)
+                                            break
+                                        end
+                                    end
+                                end
+                                if piece.hp <= 0 then
+                                    board[piece.x][piece.y] = nil
+                                    for i, p in ipairs(playerPieces) do
+                                        if p == piece then
+                                            table.remove(playerPieces, i)
+                                            break
+                                        end
                                     end
                                 end
                             end
-                            if piece.hp <= 0 then
-                                board[piece.x][piece.y] = nil
-                                for i, p in ipairs(playerPieces) do
-                                    if p == piece then
-                                        table.remove(playerPieces, i)
-                                        break
-                                    end
-                                end
-                            end
+                            break -- Tourelle attaque une seule cible par tour
                         end
-                        break -- Tourelle attaque une seule cible par tour
                     end
                 end
             end
@@ -218,7 +280,16 @@ function combat.update(dt)
     if not turnStarted then
         combat.startTurn()
     end
-    -- Pas d'autres mises à jour automatiques pour l'instant
+    if currentTurn == "enemy" and enemyTurnTimer > 0 then
+        enemyTurnTimer = enemyTurnTimer - dt
+        if enemyTurnTimer <= 0 then
+            -- Fin du tour de l'ennemi
+            local response = combat.sendEndEnemyTurn()
+            if response.success then
+                print("Tour de l'ennemi terminé")
+            end
+        end
+    end
 end
 
 function combat.draw()
@@ -268,9 +339,16 @@ function combat.draw()
         love.graphics.setColor(1, 1, 0)
         love.graphics.printf("Mode action : " .. actionMode, 0, 70, 480, "center")
     end
+    love.graphics.setColor(0, 1, 0)
+    love.graphics.printf("Tour actuel : " .. (currentTurn == "player" and "Joueur" or "Ennemi"), 0, 90, 480, "center")
 end
 
 function combat.mousepressed(x, y, button)
+    if currentTurn ~= "player" then
+        errorMessage = "Ce n'est pas votre tour !"
+        return
+    end
+
     if button == 1 then -- Clic gauche : sélectionner/déplacer
         local boardCol = math.floor((x - boardX) / tileSize) + 1
         local boardRow = math.floor((y - boardY) / tileSize) + 1
@@ -300,7 +378,7 @@ function combat.mousepressed(x, y, button)
                                     if targetPiece.hp <= 0 then
                                         board[boardCol][boardRow] = nil
                                         for i, e in ipairs(enemyPieces) do
-                                            if e == targetPiece then
+                                            if e == enemy then
                                                 table.remove(enemyPieces, i)
                                                 break
                                             end
