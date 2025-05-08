@@ -1,4 +1,4 @@
 # Brawl-Chess
 
-javac -cp lib/json-20230227.jar server/GameServer.java
-java -cp "lib/json-20230227.jar;server" GameServer
+javac -cp lib/json-20230227.jar server/com/brawlchess/server/*.java
+java -cp "lib/json-20230227.jar;server" com.brawlchess.server.GameServer
