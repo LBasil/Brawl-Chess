@@ -1,0 +1,6 @@
+Tourelle,player,1,1,3,3,1,1,0,0,0
+Sniper,player,2,1,1,1,0,0,0,0,0
+Bouclier,player,3,1,1,1,0,0,0,0,0
+Kamikaze,player,4,1,1,1,0,0,0,0,0
+Mur,player,5,1,1,1,0,0,0,0,0
+Soldat,enemy,7,7,3,3,0,0,0,0,0
