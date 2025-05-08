@@ -29,7 +29,7 @@ public class PieceRules {
             }
             String pieceType = piece.getString("type");
             if (pieceType.equals("player")) {
-                return targetX == currentX && targetY == currentY - 1;
+                return targetX == currentX && targetY == currentY + 1;
             } else {
                 return targetX == currentX && targetY == currentY + 1;
             }
