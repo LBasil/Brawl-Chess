@@ -41,10 +41,7 @@ function leaderboard.load()
         -- Données de secours si le serveur échoue
         scores = {
             { rank = 1, name = "GrokMaster", score = 1500 },
-            { rank = 2, name = "ChessWizard", score = 1200 },
-            { rank = 3, name = "PawnSlayer", score = 900 },
-            { rank = 4, name = "Knightmare", score = 750 },
-            { rank = 5, name = "RookRuler", score = 600 }
+            { rank = 2, name = "ChessWizard", score = 1200 }
         }
     end
 end
