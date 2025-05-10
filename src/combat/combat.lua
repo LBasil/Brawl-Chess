@@ -1,12 +1,12 @@
 combat = {}
 
 -- Charger les modules
-combat.board = require("src.board")
-combat.network = require("src.network")
-combat.pieces = require("src.pieces")
-combat.turn = require("src.turn")
-combat.render = require("src.render")
-combat.input = require("src.input")
+combat.board = require("src.board.board")
+combat.network = require("src.network.network")
+combat.pieces = require("src.pieces.pieces")
+combat.turn = require("src.turn.turn")
+combat.render = require("src.render.render")
+combat.input = require("src.input.input")
 
 -- Variables globales
 combat.playerPieces = {}

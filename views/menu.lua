@@ -1,4 +1,4 @@
-require("combat")
+require("src.combat.combat")
 require("views.combat_menu")
 require("views.boutique")
 require("views.collection")
@@ -13,11 +13,11 @@ local hoverButton = nil
 
 -- Liste des onglets avec leurs icônes
 local buttons = {
-    {name = "Boutique", icon = "assets/boutique_icon.png"},
-    {name = "Collection", icon = "assets/collection_icon.png"},
-    {name = "Combat", icon = "assets/combat_icon.png"},
-    {name = "Social", icon = "assets/social_icon.png"},
-    {name = "Leaderboard", icon = "assets/leaderboard_icon.png"}
+    {name = "Boutique", icon = "assets/images/boutique_icon.png"},
+    {name = "Collection", icon = "assets/images/collection_icon.png"},
+    {name = "Combat", icon = "assets/images/combat_icon.png"},
+    {name = "Social", icon = "assets/images/social_icon.png"},
+    {name = "Leaderboard", icon = "assets/images/leaderboard_icon.png"}
 }
 
 function menu.load()

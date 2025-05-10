@@ -2,7 +2,7 @@
 local network = {}
 local json = require("lib.dkjson")
 local socket = require("socket")
-local turn = require("src.turn")
+local turn = require("src.turn.turn")
 
 -- Nouvelle fonction fetchLeaderboard
 function network.fetchLeaderboard()

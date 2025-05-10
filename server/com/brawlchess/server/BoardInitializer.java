@@ -9,7 +9,7 @@ import org.json.JSONObject;
 public class BoardInitializer {
     public static void initializeBoard(Board board, GameState gameState) {
         // Charger les pions depuis pions.txt
-        try (BufferedReader reader = new BufferedReader(new FileReader("pions.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("config/pions.txt"))) {
             String line;
             JSONArray pions = new JSONArray();
             while ((line = reader.readLine()) != null) {
