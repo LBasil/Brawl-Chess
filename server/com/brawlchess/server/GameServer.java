@@ -9,6 +9,7 @@ public class GameServer {
         GameState gameState = new GameState();
         Board board = new Board(gameState);
         TurnManager turnManager = new TurnManager();
+        LeaderboardManager leaderboardManager = new LeaderboardManager(); // Nouvelle instance
 
         try {
             ServerSocket serverSocket = new ServerSocket(50000);
@@ -112,6 +113,13 @@ public class GameServer {
                             out.println(response.toString());
                             out.flush();
                             System.out.println("Réponse envoyée : " + response.toString());
+                        } else if (type.equals("leaderboard")) {
+                            // Répondre avec le classement
+                            JSONObject response = new JSONObject();
+                            response.put("scores", leaderboardManager.getLeaderboard());
+                            out.println(response.toString());
+                            out.flush();
+                            System.out.println("Réponse envoyée (leaderboard) : " + response.toString());
                         }
                     } catch (JSONException e) {
                         JSONObject response = new JSONObject();

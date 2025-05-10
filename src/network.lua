@@ -1,7 +1,44 @@
+-- Ajout au début du fichier
 local network = {}
-
 local json = require("lib.dkjson")
 local socket = require("socket")
+local turn = require("src.turn")
+
+-- Nouvelle fonction fetchLeaderboard
+function network.fetchLeaderboard()
+    local host, port = "localhost", 50000
+    local tcp = socket.tcp()
+    if not tcp then
+        return false, "Erreur : impossible de créer la socket"
+    end
+    tcp:settimeout(10)
+    local ok, err = tcp:connect(host, port)
+    if not ok then
+        tcp:close()
+        return false, "Erreur de connexion au serveur : " .. (err or "inconnu")
+    end
+    local request = {
+        type = "leaderboard"
+    }
+    local requestJson = json.encode(request)
+    local sent, sendErr = tcp:send(requestJson .. "\n")
+    if not sent then
+        tcp:close()
+        return false, "Erreur d'envoi au serveur : " .. (sendErr or "inconnu")
+    end
+    love.timer.sleep(0.1)
+    local answer, recvErr = tcp:receive("*l")
+    print("Réponse reçue (fetchLeaderboard): " .. (answer or "nil") .. " (erreur: " .. (recvErr or "aucune") .. ")")
+    tcp:close()
+    if not answer then
+        return false, "Erreur : aucune réponse du serveur : " .. (recvErr or "inconnu")
+    end
+    local response, pos, decodeErr = json.decode(answer)
+    if not response then
+        return false, "Erreur de décodage JSON : " .. (decodeErr or "inconnu")
+    end
+    return true, response.scores or {}
+end
 
 function network.connectAndFetchState(playerPieces, enemyPieces, board, turn)
     local host, port = "localhost", 50000
