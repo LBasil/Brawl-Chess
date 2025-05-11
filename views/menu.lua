@@ -21,14 +21,16 @@ local buttons = {
 }
 
 function menu.load()
-    love.graphics.setBackgroundColor(0.1, 0.2, 0.4) -- Fond bleu foncé
-    menu.titleFont = love.graphics.newFont(36) -- Police pour le titre
-    menu.buttonFont = love.graphics.newFont(20) -- Police pour le texte
-    menu.smallFont = love.graphics.newFont(16) -- Police pour les barres d'argent
+    love.graphics.setBackgroundColor(0.1, 0.2, 0.4)
+    menu.titleFont = love.graphics.newFont(36)
+    menu.buttonFont = love.graphics.newFont(20)
+    menu.smallFont = love.graphics.newFont(16)
     -- Charger les icônes pour chaque onglet
     for _, btn in ipairs(buttons) do
         btn.image = love.graphics.newImage(btn.icon)
     end
+    -- Charger l'avatar PNG
+    menu.avatarImage = love.graphics.newImage("assets/images/avatar/avatar.png")
     -- Initialiser les modules des onglets
     combat.load()
     combat_menu.load()
@@ -39,21 +41,18 @@ function menu.load()
 end
 
 function menu.update(dt)
-    hoverButton = nil -- Réinitialiser le bouton survolé
-    local buttonWidth = 480 / #buttons -- Largeur de chaque bouton (480 / 5 onglets = 96px)
-    -- Positionner chaque bouton dans la barre en bas
+    hoverButton = nil
+    local buttonWidth = 480 / #buttons
     for i, btn in ipairs(buttons) do
-        btn.x = (i-1) * buttonWidth -- Position x (0, 96, 192, 288, 384)
-        btn.y = 720 -- Position y de la barre
-        btn.width = buttonWidth -- Largeur (96px)
-        btn.height = 80 -- Hauteur de la barre
-        -- Vérifier si la souris survole le bouton
+        btn.x = (i-1) * buttonWidth
+        btn.y = 720
+        btn.width = buttonWidth
+        btn.height = 80
         local mx, my = love.mouse.getPosition()
         if mx >= btn.x and mx <= btn.x + btn.width and my >= btn.y and my <= btn.y + btn.height then
             hoverButton = btn
         end
     end
-    -- Déléguer la mise à jour au module correspondant
     if currentScreen == "combat" then
         combat_menu.update(dt)
     elseif currentScreen == "boutique" then
@@ -68,7 +67,6 @@ function menu.update(dt)
 end
 
 function menu.draw()
-    -- Fond avec motif en losanges
     love.graphics.setColor(0.2, 0.3, 0.5)
     for i = 0, 480, 40 do
         for j = 0, 800, 40 do
@@ -76,39 +74,44 @@ function menu.draw()
         end
     end
 
-    -- Haut gauche : Avatar et barre d'XP
-    love.graphics.setColor(0.8, 0.8, 0.8) -- Gris clair pour le fond
-    love.graphics.circle("fill", 35, 35, 25) -- Cercle de 50px de diamètre à x=10, y=10
-    love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
+    -- Haut gauche : Avatar rond et barre d'XP
+    love.graphics.setColor(0.8, 0.8, 0.8)
+    love.graphics.circle("fill", 35, 35, 25)
+    love.graphics.setColor(1, 0.8, 0)
     love.graphics.circle("line", 35, 35, 25)
+    -- Dessiner l'avatar avec un masque circulaire
+    love.graphics.stencil(function()
+        love.graphics.circle("fill", 35, 35, 25)
+    end, "replace", 1)
+    love.graphics.setStencilTest("greater", 0)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(menu.avatarImage, 10, 10, 0, 50 / menu.avatarImage:getWidth(), 50 / menu.avatarImage:getHeight())
+    love.graphics.setStencilTest()
     -- Barre d'XP
-    love.graphics.setColor(0.5, 0.5, 0.5) -- Fond gris
+    love.graphics.setColor(0.5, 0.5, 0.5)
     love.graphics.rectangle("fill", 70, 25, 150, 20, 5, 5)
-    love.graphics.setColor(0, 1, 0) -- Jauge verte (70% remplie)
+    love.graphics.setColor(0, 1, 0)
     love.graphics.rectangle("fill", 70, 25, 150 * 0.7, 20, 5, 5)
-    love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
+    love.graphics.setColor(1, 0.8, 0)
     love.graphics.rectangle("line", 70, 25, 150, 20, 5, 5)
 
-    -- Haut droit : Argent normal (pièces) et argent payant (gemmes)
-    -- Argent normal (pièces)
-    love.graphics.setColor(0.3, 0.3, 0.3) -- Fond gris foncé
+    -- Haut droit : Argent normal et payant
+    love.graphics.setColor(0.3, 0.3, 0.3)
     love.graphics.rectangle("fill", 300, 10, 100, 30, 5, 5)
-    love.graphics.setColor(1, 0.8, 0) -- Icône de pièce (cercle jaune)
+    love.graphics.setColor(1, 0.8, 0)
     love.graphics.circle("fill", 315, 25, 10)
     love.graphics.setColor(1, 1, 1)
     love.graphics.setFont(menu.smallFont)
-    love.graphics.printf("1000", 335, 15, 60, "center") -- Exemple : 1000 pièces
-    love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
+    love.graphics.printf("1000", 335, 15, 60, "center")
+    love.graphics.setColor(1, 0.8, 0)
     love.graphics.rectangle("line", 300, 10, 100, 30, 5, 5)
-    -- Argent payant (gemmes)
-    love.graphics.setColor(0.3, 0.3, 0.3) -- Fond gris foncé
+    love.graphics.setColor(0.3, 0.3, 0.3)
     love.graphics.rectangle("fill", 410, 10, 60, 30, 5, 5)
-    love.graphics.setColor(0.6, 0, 1) -- Icône de gemme (losange violet)
+    love.graphics.setColor(0.6, 0, 1)
     love.graphics.polygon("fill", 425, 25, 435, 15, 445, 25, 435, 35)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(menu.smallFont)
-    love.graphics.printf("50", 445, 15, 25, "center") -- Exemple : 50 gemmes
-    love.graphics.setColor(1, 0.8, 0) -- Bordure dorée
+    love.graphics.printf("50", 445, 15, 25, "center")
+    love.graphics.setColor(1, 0.8, 0)
     love.graphics.rectangle("line", 410, 10, 60, 30, 5, 5)
 
     -- Titre "Brawl Chess"
@@ -131,7 +134,7 @@ function menu.draw()
         leaderboard.draw()
     end
 
-    -- Barre du bas (toute la largeur)
+    -- Barre du bas
     love.graphics.setColor(0.1, 0.1, 0.15)
     love.graphics.rectangle("fill", 0, 720, 480, 80)
 
@@ -157,13 +160,11 @@ end
 
 function menu.mousepressed(x, y, button)
     if button == 1 then
-        -- Vérifier si un onglet est cliqué
         for _, btn in ipairs(buttons) do
             if x >= btn.x and x <= btn.x + btn.width and y >= btn.y and y <= btn.y + btn.height then
                 currentScreen = string.lower(btn.name)
             end
         end
-        -- Déléguer les clics au module correspondant
         if currentScreen == "combat" then
             combat_menu.mousepressed(x, y, button)
         elseif currentScreen == "boutique" then
