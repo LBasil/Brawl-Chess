@@ -7,7 +7,8 @@ local subScreen = nil
 local hoverButton = nil
 
 function combat_menu.load()
-    -- Rien à charger pour l'instant (polices dans menu.lua)
+    -- Charger l'image du plateau
+    combat_menu.boardImage = love.graphics.newImage("assets/images/board/board.png")
 end
 
 function combat_menu.update(dt)
@@ -28,24 +29,14 @@ end
 
 function combat_menu.draw()
     if subScreen == nil then
-        -- Échiquier stylisé (8x8 cases, 40x40 pixels chacune)
-        local boardSize = 320 -- 8 cases * 40 pixels
-        local boardX = (480 - boardSize) / 2 -- Centré : (480-320)/2 = 80
-        local boardY = 150 -- Positionné après le titre et les éléments en haut
-        -- Bordure dorée autour de l'échiquier
-        love.graphics.setColor(1, 0.8, 0)
-        love.graphics.rectangle("fill", boardX - 5, boardY - 5, boardSize + 10, boardSize + 10)
-        -- Dessiner les cases
-        for i = 1, 8 do
-            for j = 1, 8 do
-                if (i + j) % 2 == 0 then
-                    love.graphics.setColor(1, 1, 1) -- Case blanche
-                else
-                    love.graphics.setColor(0, 0, 0) -- Case noire
-                end
-                love.graphics.rectangle("fill", boardX + (i-1) * 40, boardY + (j-1) * 40, 40, 40)
-            end
-        end
+        -- Afficher l'image du plateau
+        local boardSize = 320 -- Réduit à 280x280 (7 cases de 40px)
+        local boardX = (480 - boardSize) / 2 -- Centré horizontalement
+        local boardY = 150 -- Positionné après les éléments en haut
+        love.graphics.setColor(1, 1, 1)
+        -- Redimensionner l'image à 280x280 pixels
+        local scale = boardSize / combat_menu.boardImage:getWidth()
+        love.graphics.draw(combat_menu.boardImage, boardX, boardY, 0, scale, scale)
 
         -- Bouton "Battle" en dessous de l'échiquier, centré
         love.graphics.setColor(1, 0.84, 0)
