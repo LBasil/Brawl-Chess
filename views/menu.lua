@@ -20,6 +20,12 @@ local buttons = {
     {name = "Leaderboard", icon = "assets/images/leaderboard_icon.png"}
 }
 
+-- Variables pour la barre d'XP
+local xpProgress = 0 -- Progression actuelle (0 à 1)
+local xpTarget = 0.7 -- Objectif (70%)
+local xpAnimationTime = 2 -- Durée de l'animation (2 secondes)
+local xpAnimationTimer = 0 -- Temps écoulé
+
 function menu.load()
     love.graphics.setBackgroundColor(0.1, 0.2, 0.4)
     menu.titleFont = love.graphics.newFont(36)
@@ -53,6 +59,12 @@ function menu.update(dt)
             hoverButton = btn
         end
     end
+    -- Animer la barre d'XP
+    if xpAnimationTimer < xpAnimationTime then
+        xpAnimationTimer = xpAnimationTimer + dt
+        local t = math.min(xpAnimationTimer / xpAnimationTime, 1) -- Progression linéaire (0 à 1)
+        xpProgress = t * xpTarget -- Interpolation vers l'objectif
+    end
     if currentScreen == "combat" then
         combat_menu.update(dt)
     elseif currentScreen == "boutique" then
@@ -79,7 +91,6 @@ function menu.draw()
     love.graphics.circle("fill", 35, 35, 25)
     love.graphics.setColor(1, 0.8, 0)
     love.graphics.circle("line", 35, 35, 25)
-    -- Dessiner l'avatar avec un masque circulaire
     love.graphics.stencil(function()
         love.graphics.circle("fill", 35, 35, 25)
     end, "replace", 1)
@@ -87,13 +98,26 @@ function menu.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(menu.avatarImage, 10, 10, 0, 50 / menu.avatarImage:getWidth(), 50 / menu.avatarImage:getHeight())
     love.graphics.setStencilTest()
-    -- Barre d'XP
-    love.graphics.setColor(0.5, 0.5, 0.5)
-    love.graphics.rectangle("fill", 70, 25, 150, 20, 5, 5)
-    love.graphics.setColor(0, 1, 0)
-    love.graphics.rectangle("fill", 70, 25, 150 * 0.7, 20, 5, 5)
+    -- Barre d'XP stylisée
+    local barX, barY, barWidth, barHeight = 70, 25, 150, 20
+    -- Fond (style parchemin)
+    love.graphics.setColor(0.85, 0.75, 0.65)
+    love.graphics.rectangle("fill", barX, barY, barWidth, barHeight, 5, 5)
+    -- Jauge avec dégradé (vert à doré)
+    local progressWidth = barWidth * xpProgress
+    for x = 0, progressWidth - 1 do
+        local t = x / barWidth
+        love.graphics.setColor(0, 1 - t, t) -- Dégradé de vert (0,1,0) à doré (0,0,1)
+        love.graphics.rectangle("fill", barX + x, barY, 1, barHeight, 5, 5)
+    end
+    -- Bordure dorée avec ornements
     love.graphics.setColor(1, 0.8, 0)
-    love.graphics.rectangle("line", 70, 25, 150, 20, 5, 5)
+    love.graphics.rectangle("line", barX, barY, barWidth, barHeight, 5, 5)
+    -- Ornements (petits cercles aux coins)
+    love.graphics.circle("fill", barX, barY, 5)
+    love.graphics.circle("fill", barX + barWidth, barY, 5)
+    love.graphics.circle("fill", barX, barY + barHeight, 5)
+    love.graphics.circle("fill", barX + barWidth, barY + barHeight, 5)
 
     -- Haut droit : Argent normal et payant
     love.graphics.setColor(0.3, 0.3, 0.3)
