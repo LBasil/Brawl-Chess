@@ -5,17 +5,12 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
     local tileSize = board.getTileSize()
     local boardX, boardY = board.getOffset()
 
-    -- Dessiner le plateau
-    for i = 1, boardSize do
-        for j = 1, boardSize do
-            if (i + j) % 2 == 0 then
-                love.graphics.setColor(1, 1, 1)
-            else
-                love.graphics.setColor(0.5, 0.5, 0.5)
-            end
-            love.graphics.rectangle("fill", boardX + (i-1) * tileSize, boardY + (j-1) * tileSize, tileSize, tileSize)
-        end
-    end
+    -- Charger et dessiner l'image du plateau
+    local boardImage = love.graphics.newImage("assets/images/board/board.png")
+    local totalSize = boardSize * tileSize
+    local scale = totalSize / boardImage:getWidth()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(boardImage, boardX, boardY, 0, scale, scale)
 
     -- Dessiner les pions du joueur (alliés)
     for _, piece in ipairs(playerPieces) do
