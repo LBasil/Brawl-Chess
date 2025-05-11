@@ -34,7 +34,7 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
             )
             -- Dessiner le texte (nom, HP, bouclier)
             love.graphics.setColor(1, 1, 1)
-            local text = piece.name .. "\nHP: " .. math.floor(piece.hp)
+            local text = "HP: " .. math.floor(piece.hp)
             if piece.shield and piece.shield > 0 then
                 text = text .. "\nShield: " .. piece.shield
             end
@@ -59,7 +59,7 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
             )
             -- Dessiner le texte (nom, HP, bouclier)
             love.graphics.setColor(1, 1, 1)
-            local text = piece.name .. "\nHP: " .. math.floor(piece.hp)
+            local text = "HP: " .. math.floor(piece.hp)
             if piece.shield and piece.shield > 0 then
                 text = text .. "\nShield: " .. piece.shield
             end
