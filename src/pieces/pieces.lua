@@ -1,5 +1,40 @@
 local pieces = {}
 
+-- Mapping des types de pions aux indices de sprites (de 1 à 14)
+local spriteMapping = {
+    Soldat = 1,
+    Tourelle = 2,
+    Sniper = 3,
+    Bouclier = 4,
+    Kamikaze = 5,
+    Mur = 6,
+    -- Ajoute d'autres types si nécessaire (jusqu'à 14)
+}
+
+-- Table pour stocker les images chargées
+local sprites = {
+    blue = {}, -- Sprites des alliés
+    red = {}   -- Sprites des ennemis
+}
+
+function pieces.loadSprites()
+    -- Charger les sprites pour les alliés (blue)
+    for i = 1, 14 do
+        sprites.blue[i] = love.graphics.newImage("assets/images/pieces/blue/blue_sprite_" .. i .. ".png")
+    end
+    -- Charger les sprites pour les ennemis (red)
+    for i = 1, 14 do
+        sprites.red[i] = love.graphics.newImage("assets/images/pieces/red/red_sprite_" .. i .. ".png")
+    end
+end
+
+function pieces.assignSprite(piece, isEnemy)
+    -- Déterminer le type de pion et son camp
+    local pieceType = piece.name
+    local spriteIndex = spriteMapping[pieceType] or 1 -- Par défaut, utiliser le sprite 1 si non mappé
+    piece.sprite = isEnemy and sprites.red[spriteIndex] or sprites.blue[spriteIndex]
+end
+
 function pieces.updateAfterMove(piece, targetX, targetY, board)
     board.clearTile(piece.x, piece.y)
     piece.x = targetX

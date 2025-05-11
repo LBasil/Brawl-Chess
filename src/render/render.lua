@@ -17,15 +17,22 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
         end
     end
 
-    -- Dessiner les pions du joueur
+    -- Dessiner les pions du joueur (alliés)
     for _, piece in ipairs(playerPieces) do
         if piece.hp > 0 then
-            if piece.name == "Wall" then
-                love.graphics.setColor(0.3, 0.3, 0.3)
-            else
-                love.graphics.setColor(0, 0, 1)
-            end
-            love.graphics.rectangle("fill", boardX + (piece.x-1) * tileSize + 5, boardY + (piece.y-1) * tileSize + 5, tileSize - 10, tileSize - 10)
+            -- Dessiner le sprite
+            local spriteWidth, spriteHeight = piece.sprite:getWidth(), piece.sprite:getHeight()
+            local scale = (tileSize - 10) / math.max(spriteWidth, spriteHeight) -- Redimensionner pour tenir dans la tuile
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(
+                piece.sprite,
+                boardX + (piece.x-1) * tileSize + 5,
+                boardY + (piece.y-1) * tileSize + 5,
+                0, -- Rotation
+                scale, -- Échelle X
+                scale  -- Échelle Y
+            )
+            -- Dessiner le texte (nom, HP, bouclier)
             love.graphics.setColor(1, 1, 1)
             local text = piece.name .. "\nHP: " .. math.floor(piece.hp)
             if piece.shield and piece.shield > 0 then
@@ -38,8 +45,19 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
     -- Dessiner les pions ennemis
     for _, piece in ipairs(enemyPieces) do
         if piece.hp > 0 then
-            love.graphics.setColor(1, 0, 0)
-            love.graphics.rectangle("fill", boardX + (piece.x-1) * tileSize + 5, boardY + (piece.y-1) * tileSize + 5, tileSize - 10, tileSize - 10)
+            -- Dessiner le sprite
+            local spriteWidth, spriteHeight = piece.sprite:getWidth(), piece.sprite:getHeight()
+            local scale = (tileSize - 10) / math.max(spriteWidth, spriteHeight) -- Redimensionner pour tenir dans la tuile
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(
+                piece.sprite,
+                boardX + (piece.x-1) * tileSize + 5,
+                boardY + (piece.y-1) * tileSize + 5,
+                0, -- Rotation
+                scale, -- Échelle X
+                scale  -- Échelle Y
+            )
+            -- Dessiner le texte (nom, HP, bouclier)
             love.graphics.setColor(1, 1, 1)
             local text = piece.name .. "\nHP: " .. math.floor(piece.hp)
             if piece.shield and piece.shield > 0 then

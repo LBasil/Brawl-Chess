@@ -15,12 +15,22 @@ combat.enemyPieces = {}
 function combat.load()
     combat.board.init()
     combat.turn.init(combat.playerPieces, combat.enemyPieces, combat.board)
+    -- Charger les sprites des pions
+    combat.pieces.loadSprites()
 end
 
 function combat.enterCombat()
     local success, errorMsg = combat.network.connectAndFetchState(combat.playerPieces, combat.enemyPieces, combat.board, combat.turn)
     if not success then
         combat.input.setErrorMessage(errorMsg)
+    else
+        -- Assigner les sprites à chaque pion après avoir récupéré les données
+        for _, piece in ipairs(combat.playerPieces) do
+            combat.pieces.assignSprite(piece, false) -- Alliés
+        end
+        for _, piece in ipairs(combat.enemyPieces) do
+            combat.pieces.assignSprite(piece, true) -- Ennemis
+        end
     end
 end
 
