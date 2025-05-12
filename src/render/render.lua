@@ -6,7 +6,7 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
     local boardX, boardY = board.getOffset()
 
     -- Charger et dessiner l'image du plateau
-    local boardImage = love.graphics.newImage("assets/images/board/board.png")
+    local boardImage = love.graphics.newImage("src/assets/images/board/board.png")
     local totalSize = boardSize * tileSize
     local scale = totalSize / boardImage:getWidth()
     love.graphics.setColor(1, 1, 1)

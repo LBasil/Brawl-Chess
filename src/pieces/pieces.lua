@@ -20,11 +20,11 @@ local sprites = {
 function pieces.loadSprites()
     -- Charger les sprites pour les alliés (blue)
     for i = 1, 14 do
-        sprites.blue[i] = love.graphics.newImage("assets/images/pieces/blue/blue_sprite_" .. i .. ".png")
+        sprites.blue[i] = love.graphics.newImage("src/assets/images/pieces/blue/blue_sprite_" .. i .. ".png")
     end
     -- Charger les sprites pour les ennemis (red)
     for i = 1, 14 do
-        sprites.red[i] = love.graphics.newImage("assets/images/pieces/red/red_sprite_" .. i .. ".png")
+        sprites.red[i] = love.graphics.newImage("src/assets/images/pieces/red/red_sprite_" .. i .. ".png")
     end
 end
 

@@ -1,11 +1,11 @@
 local navBar = {}
 
 local buttons = {
-    {name = "Boutique", icon = "assets/images/icons/boutique_icon.png"},
-    {name = "Collection", icon = "assets/images/icons/bcollection_icon.png"},
-    {name = "Combat", icon = "assets/images/icons/bcombat_icon.png"},
-    {name = "Social", icon = "assets/images/icons/bsocial_icon.png"},
-    {name = "Leaderboard", icon = "assets/images/icons/bleaderboard_icon.png"}
+    {name = "Boutique", icon = "src/assets/images/icons/boutique_icon.png"},
+    {name = "Collection", icon = "src/assets/images/icons/collection_icon.png"},
+    {name = "Combat", icon = "src/assets/images/icons/combat_icon.png"},
+    {name = "Social", icon = "src/assets/images/icons/social_icon.png"},
+    {name = "Leaderboard", icon = "src/assets/images/icons/leaderboard_icon.png"}
 }
 
 function navBar.load()
