@@ -1,4 +1,4 @@
-require("src.views.menu")
+require("src.views.menu.menu")
 
 function love.load()
     -- Appeler la fonction load du menu
