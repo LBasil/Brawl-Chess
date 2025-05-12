@@ -15,7 +15,6 @@ local currentScreen = "combat"
 
 function menu.load()
     love.graphics.setBackgroundColor(0.1, 0.2, 0.4)
-    menu.titleFont = love.graphics.newFont(36)
     menu.buttonFont = love.graphics.newFont(20)
     menu.smallFont = love.graphics.newFont(16)
     -- Charger les composants
@@ -60,11 +59,6 @@ function menu.draw()
     avatar.draw()
     xpBar.draw()
     currencyBar.draw()
-
-    -- Titre "Brawl Chess"
-    love.graphics.setFont(menu.titleFont)
-    love.graphics.setColor(1, 0.8, 0)
-    love.graphics.printf("Brawl Chess", 0, 70, 480, "center")
 
     -- Afficher l'écran actuel
     love.graphics.setFont(menu.buttonFont)
