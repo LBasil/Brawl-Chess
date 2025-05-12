@@ -1,5 +1,5 @@
 require("src.components.combat.combat")
-require("src.views.combat_menu.combat_menu")
+require("src.views.combatMenu.combatMenu")
 require("src.views.boutique.boutique")
 require("src.views.collection.collection")
 require("src.views.social.social")
@@ -25,7 +25,7 @@ function menu.load()
     navBar.load()
     -- Charger les modules des onglets
     combat.load()
-    combat_menu.load()
+    combatMenu.load()
     boutique.load()
     collection.load()
     social.load()
@@ -36,7 +36,7 @@ function menu.update(dt)
     navBar.update(dt)
     xpBar.update(dt)
     if currentScreen == "combat" then
-        combat_menu.update(dt)
+        combatMenu.update(dt)
     elseif currentScreen == "boutique" then
         boutique.update(dt)
     elseif currentScreen == "collection" then
@@ -70,7 +70,7 @@ function menu.draw()
     love.graphics.setFont(menu.buttonFont)
     love.graphics.setColor(1, 1, 1)
     if currentScreen == "combat" then
-        combat_menu.draw()
+        combatMenu.draw()
     elseif currentScreen == "boutique" then
         boutique.draw()
     elseif currentScreen == "collection" then
@@ -92,7 +92,7 @@ function menu.mousepressed(x, y, button)
             currentScreen = clickedScreen
         end
         if currentScreen == "combat" then
-            combat_menu.mousepressed(x, y, button)
+            combatMenu.mousepressed(x, y, button)
         elseif currentScreen == "boutique" then
             boutique.mousepressed(x, y, button)
         elseif currentScreen == "collection" then
