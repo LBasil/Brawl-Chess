@@ -1,4 +1,4 @@
-require("src.combat.combat")
+require("src.components.combat.combat")
 
 combat_menu = {}
 

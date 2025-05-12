@@ -1,13 +1,13 @@
-require("src.combat.combat")
+require("src.components.combat.combat")
 require("src.views.combat_menu.combat_menu")
 require("src.views.boutique.boutique")
 require("src.views.collection.collection")
 require("src.views.social.social")
 require("src.views.leaderboard.leaderboard")
-local avatar = require("src.avatar.avatar")
-local xpBar = require("src.xpBar.xpBar")
-local currencyBar = require("src.currencyBar.currencyBar")
-local navBar = require("src.navBar.navBar")
+local avatar = require("src.components.avatar.avatar")
+local xpBar = require("src.components.xpBar.xpBar")
+local currencyBar = require("src.components.currencyBar.currencyBar")
+local navBar = require("src.components.navBar.navBar")
 
 menu = {}
 
