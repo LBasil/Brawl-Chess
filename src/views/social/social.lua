@@ -17,3 +17,5 @@ end
 function social.mousepressed(x, y, button)
     -- Rien à gérer pour l'instant
 end
+
+return social;

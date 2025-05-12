@@ -59,3 +59,5 @@ function combatMenu.mousepressed(x, y, button)
         combat.mousepressed(x, y, button)
     end
 end
+
+return combatMenu;

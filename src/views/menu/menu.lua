@@ -1,13 +1,11 @@
 require("src.components.combat.combat")
-require("src.views.combatMenu.combatMenu")
-require("src.views.boutique.boutique")
-require("src.views.collection.collection")
-require("src.views.social.social")
-require("src.views.leaderboard.leaderboard")
 local avatar = require("src.components.avatar.avatar")
 local xpBar = require("src.components.xpBar.xpBar")
 local currencyBar = require("src.components.currencyBar.currencyBar")
 local navBar = require("src.components.navBar.navBar")
+local background = require("src.components.background.background")
+local screens = require("src.components.screens.screens")
+local resources = require("src.components.resources.resources")
 
 menu = {}
 
@@ -15,67 +13,32 @@ local currentScreen = "combat"
 
 function menu.load()
     love.graphics.setBackgroundColor(0.1, 0.2, 0.4)
-    menu.buttonFont = love.graphics.newFont(20)
-    menu.smallFont = love.graphics.newFont(16)
+    -- Charger les ressources globales
+    resources.load()
     -- Charger les composants
     avatar.load()
     xpBar.load()
-    currencyBar.load(menu.smallFont)
+    currencyBar.load(resources.smallFont)
     navBar.load()
-    -- Charger les modules des onglets
+    screens.load()
+    -- Charger le module combat (requis pour combatMenu)
     combat.load()
-    combatMenu.load()
-    boutique.load()
-    collection.load()
-    social.load()
-    leaderboard.load()
 end
 
 function menu.update(dt)
     navBar.update(dt)
     xpBar.update(dt)
-    if currentScreen == "combat" then
-        combatMenu.update(dt)
-    elseif currentScreen == "boutique" then
-        boutique.update(dt)
-    elseif currentScreen == "collection" then
-        collection.update(dt)
-    elseif currentScreen == "social" then
-        social.update(dt)
-    elseif currentScreen == "leaderboard" then
-        leaderboard.update(dt)
-    end
+    screens.update(dt, currentScreen)
 end
 
 function menu.draw()
-    love.graphics.setColor(0.2, 0.3, 0.5)
-    for i = 0, 480, 40 do
-        for j = 0, 800, 40 do
-            love.graphics.rectangle("fill", i, j, 20, 20)
-        end
-    end
-
-    -- Dessiner les composants
+    background.draw()
     avatar.draw()
     xpBar.draw()
     currencyBar.draw()
-
-    -- Afficher l'écran actuel
-    love.graphics.setFont(menu.buttonFont)
+    love.graphics.setFont(resources.buttonFont)
     love.graphics.setColor(1, 1, 1)
-    if currentScreen == "combat" then
-        combatMenu.draw()
-    elseif currentScreen == "boutique" then
-        boutique.draw()
-    elseif currentScreen == "collection" then
-        collection.draw()
-    elseif currentScreen == "social" then
-        social.draw()
-    elseif currentScreen == "leaderboard" then
-        leaderboard.draw()
-    end
-
-    -- Barre de navigation
+    screens.draw(currentScreen)
     navBar.draw(currentScreen)
 end
 
@@ -85,16 +48,8 @@ function menu.mousepressed(x, y, button)
         if clickedScreen then
             currentScreen = clickedScreen
         end
-        if currentScreen == "combat" then
-            combatMenu.mousepressed(x, y, button)
-        elseif currentScreen == "boutique" then
-            boutique.mousepressed(x, y, button)
-        elseif currentScreen == "collection" then
-            collection.mousepressed(x, y, button)
-        elseif currentScreen == "social" then
-            social.mousepressed(x, y, button)
-        elseif currentScreen == "leaderboard" then
-            leaderboard.mousepressed(x, y, button)
-        end
+        screens.mousepressed(x, y, button, currentScreen)
     end
 end
+
+return menu;

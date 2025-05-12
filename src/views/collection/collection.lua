@@ -17,3 +17,5 @@ end
 function collection.mousepressed(x, y, button)
     -- Rien à gérer pour l'instant
 end
+
+return collection;
