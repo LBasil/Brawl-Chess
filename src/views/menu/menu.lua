@@ -21,6 +21,7 @@ function menu.load()
     currencyBar.load(resources.smallFont)
     navBar.load()
     screens.load()
+    background.load()
     -- Charger le module combat (requis pour combatMenu)
     combat.load()
 end

@@ -1,7 +1,7 @@
 local avatar = {}
 
 function avatar.load()
-    avatar.image = love.graphics.newImage("src/assets/images/avatar/avatar.png")
+    avatar.image = love.graphics.newImage("assets/images/avatar/avatar.png")
 end
 
 function avatar.draw()

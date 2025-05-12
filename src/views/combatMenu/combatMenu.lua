@@ -8,7 +8,7 @@ local hoverButton = nil
 
 function combatMenu.load()
     -- Charger l'image du plateau
-    combatMenu.boardImage = love.graphics.newImage("src/assets/images/board/board.png")
+    combatMenu.boardImage = love.graphics.newImage("assets/images/board/board.png")
 end
 
 function combatMenu.update(dt)
