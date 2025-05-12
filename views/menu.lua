@@ -4,40 +4,26 @@ require("views.boutique")
 require("views.collection")
 require("views.social")
 require("views.leaderboard")
+local avatar = require("src.avatar.avatar")
+local xpBar = require("src.xpBar.xpBar")
+local currencyBar = require("src.currencyBar.currencyBar")
+local navBar = require("src.navBar.navBar")
 
 menu = {}
 
--- Initialiser directement sur l'onglet "Combat" (menu d'accueil)
 local currentScreen = "combat"
-local hoverButton = nil
-
--- Liste des onglets avec leurs icônes
-local buttons = {
-    {name = "Boutique", icon = "assets/images/boutique_icon.png"},
-    {name = "Collection", icon = "assets/images/collection_icon.png"},
-    {name = "Combat", icon = "assets/images/combat_icon.png"},
-    {name = "Social", icon = "assets/images/social_icon.png"},
-    {name = "Leaderboard", icon = "assets/images/leaderboard_icon.png"}
-}
-
--- Variables pour la barre d'XP
-local xpProgress = 0 -- Progression actuelle (0 à 1)
-local xpTarget = 0.7 -- Objectif (70%)
-local xpAnimationTime = 2 -- Durée de l'animation (2 secondes)
-local xpAnimationTimer = 0 -- Temps écoulé
 
 function menu.load()
     love.graphics.setBackgroundColor(0.1, 0.2, 0.4)
     menu.titleFont = love.graphics.newFont(36)
     menu.buttonFont = love.graphics.newFont(20)
     menu.smallFont = love.graphics.newFont(16)
-    -- Charger les icônes pour chaque onglet
-    for _, btn in ipairs(buttons) do
-        btn.image = love.graphics.newImage(btn.icon)
-    end
-    -- Charger l'avatar PNG
-    menu.avatarImage = love.graphics.newImage("assets/images/avatar/avatar.png")
-    -- Initialiser les modules des onglets
+    -- Charger les composants
+    avatar.load()
+    xpBar.load()
+    currencyBar.load(menu.smallFont)
+    navBar.load()
+    -- Charger les modules des onglets
     combat.load()
     combat_menu.load()
     boutique.load()
@@ -47,24 +33,8 @@ function menu.load()
 end
 
 function menu.update(dt)
-    hoverButton = nil
-    local buttonWidth = 480 / #buttons
-    for i, btn in ipairs(buttons) do
-        btn.x = (i-1) * buttonWidth
-        btn.y = 720
-        btn.width = buttonWidth
-        btn.height = 80
-        local mx, my = love.mouse.getPosition()
-        if mx >= btn.x and mx <= btn.x + btn.width and my >= btn.y and my <= btn.y + btn.height then
-            hoverButton = btn
-        end
-    end
-    -- Animer la barre d'XP
-    if xpAnimationTimer < xpAnimationTime then
-        xpAnimationTimer = xpAnimationTimer + dt
-        local t = math.min(xpAnimationTimer / xpAnimationTime, 1) -- Progression linéaire (0 à 1)
-        xpProgress = t * xpTarget -- Interpolation vers l'objectif
-    end
+    navBar.update(dt)
+    xpBar.update(dt)
     if currentScreen == "combat" then
         combat_menu.update(dt)
     elseif currentScreen == "boutique" then
@@ -86,57 +56,10 @@ function menu.draw()
         end
     end
 
-    -- Haut gauche : Avatar rond et barre d'XP
-    love.graphics.setColor(0.8, 0.8, 0.8)
-    love.graphics.circle("fill", 35, 35, 25)
-    love.graphics.setColor(1, 0.8, 0)
-    love.graphics.circle("line", 35, 35, 25)
-    love.graphics.stencil(function()
-        love.graphics.circle("fill", 35, 35, 25)
-    end, "replace", 1)
-    love.graphics.setStencilTest("greater", 0)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(menu.avatarImage, 10, 10, 0, 50 / menu.avatarImage:getWidth(), 50 / menu.avatarImage:getHeight())
-    love.graphics.setStencilTest()
-    -- Barre d'XP stylisée
-    local barX, barY, barWidth, barHeight = 70, 25, 150, 20
-    -- Fond (style parchemin)
-    love.graphics.setColor(0.85, 0.75, 0.65)
-    love.graphics.rectangle("fill", barX, barY, barWidth, barHeight, 5, 5)
-    -- Jauge avec dégradé (vert à doré)
-    local progressWidth = barWidth * xpProgress
-    for x = 0, progressWidth - 1 do
-        local t = x / barWidth
-        love.graphics.setColor(0, 1 - t, t) -- Dégradé de vert (0,1,0) à doré (0,0,1)
-        love.graphics.rectangle("fill", barX + x, barY, 1, barHeight, 5, 5)
-    end
-    -- Bordure dorée avec ornements
-    love.graphics.setColor(1, 0.8, 0)
-    love.graphics.rectangle("line", barX, barY, barWidth, barHeight, 5, 5)
-    -- Ornements (petits cercles aux coins)
-    love.graphics.circle("fill", barX, barY, 5)
-    love.graphics.circle("fill", barX + barWidth, barY, 5)
-    love.graphics.circle("fill", barX, barY + barHeight, 5)
-    love.graphics.circle("fill", barX + barWidth, barY + barHeight, 5)
-
-    -- Haut droit : Argent normal et payant
-    love.graphics.setColor(0.3, 0.3, 0.3)
-    love.graphics.rectangle("fill", 300, 10, 100, 30, 5, 5)
-    love.graphics.setColor(1, 0.8, 0)
-    love.graphics.circle("fill", 315, 25, 10)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(menu.smallFont)
-    love.graphics.printf("1000", 335, 15, 60, "center")
-    love.graphics.setColor(1, 0.8, 0)
-    love.graphics.rectangle("line", 300, 10, 100, 30, 5, 5)
-    love.graphics.setColor(0.3, 0.3, 0.3)
-    love.graphics.rectangle("fill", 410, 10, 60, 30, 5, 5)
-    love.graphics.setColor(0.6, 0, 1)
-    love.graphics.polygon("fill", 425, 25, 435, 15, 445, 25, 435, 35)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("50", 445, 15, 25, "center")
-    love.graphics.setColor(1, 0.8, 0)
-    love.graphics.rectangle("line", 410, 10, 60, 30, 5, 5)
+    -- Dessiner les composants
+    avatar.draw()
+    xpBar.draw()
+    currencyBar.draw()
 
     -- Titre "Brawl Chess"
     love.graphics.setFont(menu.titleFont)
@@ -158,36 +81,15 @@ function menu.draw()
         leaderboard.draw()
     end
 
-    -- Barre du bas
-    love.graphics.setColor(0.1, 0.1, 0.15)
-    love.graphics.rectangle("fill", 0, 720, 480, 80)
-
-    -- Onglets avec icônes
-    for _, button in ipairs(buttons) do
-        if hoverButton == button or currentScreen == string.lower(button.name) then
-            love.graphics.setColor(0.3, 0.7, 1)
-        else
-            love.graphics.setColor(0.2, 0.4, 0.7)
-        end
-        love.graphics.rectangle("fill", button.x, 720, button.width, button.height)
-        love.graphics.setColor(1, 1, 1)
-        if button.image then
-            local scale = math.min(button.width * 0.6 / button.image:getWidth(), button.height * 0.6 / button.image:getHeight())
-            local newWidth = button.image:getWidth() * scale
-            local newHeight = button.image:getHeight() * scale
-            local iconX = button.x + (button.width - newWidth) / 2
-            local iconY = 720 + (button.height - newHeight) / 2
-            love.graphics.draw(button.image, iconX, iconY, 0, scale, scale)
-        end
-    end
+    -- Barre de navigation
+    navBar.draw(currentScreen)
 end
 
 function menu.mousepressed(x, y, button)
     if button == 1 then
-        for _, btn in ipairs(buttons) do
-            if x >= btn.x and x <= btn.x + btn.width and y >= btn.y and y <= btn.y + btn.height then
-                currentScreen = string.lower(btn.name)
-            end
+        local clickedScreen = navBar.getClickedButton(x, y)
+        if clickedScreen then
+            currentScreen = clickedScreen
         end
         if currentScreen == "combat" then
             combat_menu.mousepressed(x, y, button)
