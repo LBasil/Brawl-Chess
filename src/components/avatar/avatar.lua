@@ -2,6 +2,7 @@ local avatar = {}
 
 function avatar.load()
     avatar.image = love.graphics.newImage("assets/images/avatar/avatar.png")
+    math.randomseed(os.time())
     local id = math.random(5)
     avatar.border = love.graphics.newImage("assets/images/avatar/circle/" .. id .. ".png")
 end
