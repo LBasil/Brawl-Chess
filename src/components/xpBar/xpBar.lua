@@ -6,7 +6,8 @@ local xpAnimationTime = 2
 local xpAnimationTimer = 0
 
 function xpBar.load()
-    -- Rien à charger pour l'instant
+    -- Charger l'image du cadre
+    xpBar.borderImage = love.graphics.newImage("assets/images/xpBar/button_rectangle_depth_border.png")
 end
 
 function xpBar.update(dt)
@@ -19,6 +20,18 @@ end
 
 function xpBar.draw()
     local barX, barY, barWidth, barHeight = 70, 25, 150, 20
+
+    -- Dessiner le cadre rectangulaire
+    love.graphics.setColor(1, 1, 1)
+    local borderWidth = barWidth + 20 -- Marge de 10 pixels de chaque côté
+    local borderHeight = barHeight + 20
+    local borderX = barX - 10
+    local borderY = barY - 10
+    local scaleX = borderWidth / xpBar.borderImage:getWidth()
+    local scaleY = borderHeight / xpBar.borderImage:getHeight()
+    love.graphics.draw(xpBar.borderImage, borderX, borderY, 0, scaleX, scaleY)
+
+    -- Dessiner la barre d'XP
     love.graphics.setColor(0.85, 0.75, 0.65)
     love.graphics.rectangle("fill", barX, barY, barWidth, barHeight, 5, 5)
     local progressWidth = barWidth * xpProgress
