@@ -2,13 +2,15 @@ require("src.components.combat.combat")
 
 combatMenu = {}
 
-local battleButton = {x = 170, y = 480, width = 140, height = 80} -- Bouton "Battle"
+local battleButton = {x = 170, y = 490, width = 140, height = 40} -- Bouton "Battle" plus rectangulaire
 local subScreen = nil
 local hoverButton = nil
 
 function combatMenu.load()
     -- Charger l'image du plateau
     combatMenu.boardImage = love.graphics.newImage("assets/images/board/board.png")
+    -- Charger l'image du bouton
+    combatMenu.buttonImage = love.graphics.newImage("assets/images/buttons/button_rectangle_gradient.png")
 end
 
 function combatMenu.update(dt)
@@ -30,19 +32,23 @@ end
 function combatMenu.draw()
     if subScreen == nil then
         -- Afficher l'image du plateau
-        local boardSize = 320 -- Réduit à 280x280 (7 cases de 40px)
+        local boardSize = 320 -- Taille du plateau (320x320)
         local boardX = (480 - boardSize) / 2 -- Centré horizontalement
         local boardY = 150 -- Positionné après les éléments en haut
         love.graphics.setColor(1, 1, 1)
-        -- Redimensionner l'image à 280x280 pixels
         local scale = boardSize / combatMenu.boardImage:getWidth()
         love.graphics.draw(combatMenu.boardImage, boardX, boardY, 0, scale, scale)
 
-        -- Bouton "Battle" en dessous de l'échiquier, centré
-        love.graphics.setColor(1, 0.84, 0)
-        love.graphics.rectangle("fill", battleButton.x - 10, battleButton.y - 10, battleButton.width + 20, battleButton.height + 20, 10, 10)
-        love.graphics.setColor(0, 0, 0)
-        love.graphics.printf("Battle", battleButton.x, battleButton.y + 30, battleButton.width, "center")
+        -- Bouton "Battle" pile en dessous du plateau
+        local buttonScaleX = (battleButton.width + 20) / combatMenu.buttonImage:getWidth()
+        local buttonScaleY = (battleButton.height + 20) / combatMenu.buttonImage:getHeight()
+        love.graphics.setColor(1, 1, 1)
+        if hoverButton and hoverButton.name == "battle" then
+            love.graphics.setColor(0.8, 0.8, 0.8) -- Légère atténuation au survol
+        end
+        love.graphics.draw(combatMenu.buttonImage, battleButton.x - 10, battleButton.y - 10, 0, buttonScaleX, buttonScaleY)
+        love.graphics.setColor(1, 1, 1) -- Texte en blanc pour lisibilité
+        love.graphics.printf("Battle", battleButton.x, battleButton.y + 10, battleButton.width, "center")
     elseif subScreen == "battle" then
         combat.draw() -- Afficher le plateau
     end
@@ -60,4 +66,4 @@ function combatMenu.mousepressed(x, y, button)
     end
 end
 
-return combatMenu;
+return combatMenu
