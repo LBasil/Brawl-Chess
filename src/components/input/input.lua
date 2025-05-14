@@ -20,64 +20,18 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
         if input.actionMode then
             if input.selectedPiece then
                 local targetPiece = board.getTile(boardCol, boardRow)
-                if input.actionMode == "attack" and (input.selectedPiece.name == "Sniper" or input.selectedPiece.name == "Kamikaze") then
-                    if targetPiece and targetPiece.type == "enemy" then
-                        local distance = math.abs(input.selectedPiece.x - boardCol) + math.abs(input.selectedPiece.y - boardRow)
-                        if input.selectedPiece.name == "Kamikaze" and distance ~= 1 then
-                            input.errorMessage = "Kamikaze : cible trop loin (1 case max)"
-                        else
-                            local response = network.sendAction(input.selectedPiece, "attack", boardCol, boardRow, turn.getCurrentTurn())
-                            if response.success then
-                                pieces.updateAfterAction(input.selectedPiece, "attack", targetPiece, playerPieces, enemyPieces, board)
-                                turn.setCurrentTurn(response.currentTurn)
-                                if response.currentTurn == "enemy" then
-                                    turn.setEnemyTurn()
-                                end
-                            else
-                                input.errorMessage = response.error or "Erreur lors de l'attaque"
-                            end
-                        end
+                if input.actionMode == "attack" and input.selectedPiece.name == "Tourelle" then
+                    local distance = math.abs(input.selectedPiece.x - boardCol) + math.abs(input.selectedPiece.y - boardRow)
+                    if distance ~= 1 then
+                        input.errorMessage = "Cible doit être à 1 case"
                     else
-                        input.errorMessage = "Cible invalide : doit être un ennemi"
-                    end
-                elseif input.actionMode == "shield" and input.selectedPiece.name == "Bouclier" then
-                    if targetPiece and targetPiece.type == "player" then
-                        local response = network.sendAction(input.selectedPiece, "shield", boardCol, boardRow, turn.getCurrentTurn())
+                        local response = network.sendAction(input.selectedPiece, "attack", boardCol, boardRow, turn.getCurrentTurn())
                         if response.success then
-                            pieces.updateAfterAction(input.selectedPiece, "shield", targetPiece, playerPieces, enemyPieces, board)
+                            pieces.updateAfterAction(input.selectedPiece, "attack", targetPiece, playerPieces, enemyPieces, board)
                             turn.setCurrentTurn(response.currentTurn)
-                            if response.currentTurn == "enemy" then
-                                turn.setEnemyTurn()
-                            end
                         else
-                            input.errorMessage = response.error or "Erreur lors du bouclier"
+                            input.errorMessage = response.error or "Erreur lors de l'attaque"
                         end
-                    else
-                        input.errorMessage = "Cible invalide : doit être un allié"
-                    end
-                elseif input.actionMode == "deploy" and input.selectedPiece.name == "Mur" then
-                    local response = network.sendAction(input.selectedPiece, "deploy", boardCol, boardRow, turn.getCurrentTurn())
-                    if response.success then
-                        pieces.updateAfterAction(input.selectedPiece, "deploy", targetPiece, playerPieces, enemyPieces, board)
-                        local wallPieces = response.wallPieces or {}
-                        for _, wall in ipairs(wallPieces) do
-                            local newPiece = {
-                                name = wall.name,
-                                type = wall.type,
-                                x = wall.x,
-                                y = wall.y,
-                                hp = wall.hp,
-                                maxHP = wall.maxHP
-                            }
-                            table.insert(playerPieces, newPiece)
-                            board.setTile(wall.x, wall.y, newPiece)
-                        end
-                        turn.setCurrentTurn(response.currentTurn)
-                        if response.currentTurn == "enemy" then
-                            turn.setEnemyTurn()
-                        end
-                    else
-                        input.errorMessage = response.error or "Erreur lors du déploiement"
                     end
                 end
                 input.actionMode = nil
@@ -89,9 +43,6 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
                 if response.success then
                     pieces.updateAfterMove(input.selectedPiece, response.piece.x, response.piece.y, board)
                     turn.setCurrentTurn(response.currentTurn)
-                    if response.currentTurn == "enemy" then
-                        turn.setEnemyTurn()
-                    end
                     input.selectedPiece = nil
                 else
                     input.errorMessage = response.error or "Erreur lors du déplacement"
@@ -108,19 +59,9 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
         end
     elseif button == 2 then -- Clic droit : choisir une action
         for _, piece in ipairs(playerPieces) do
-            if piece.x == boardCol and piece.y == boardRow and piece.hp > 0 then
-                if piece.name == "Sniper" or piece.name == "Kamikaze" then
-                    if not piece.hasUsedAction then
-                        input.actionMode = "attack"
-                        input.selectedPiece = piece
-                    else
-                        input.errorMessage = "Action déjà utilisée"
-                    end
-                elseif piece.name == "Bouclier" then
-                    input.actionMode = "shield"
-                    input.selectedPiece = piece
-                elseif piece.name == "Mur" and not piece.hasUsedAction then
-                    input.actionMode = "deploy"
+            if piece.x == boardCol and piece.y == boardRow and piece.hp > 0 and not piece.hasMoved and not piece.hasUsedAction then
+                if piece.name == "Tourelle" then
+                    input.actionMode = "attack"
                     input.selectedPiece = piece
                 end
                 break

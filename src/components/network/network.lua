@@ -1,10 +1,8 @@
--- Ajout au début du fichier
 local network = {}
 local json = require("lib.dkjson")
 local socket = require("socket")
 local turn = require("src.components.turn.turn")
 
--- Nouvelle fonction fetchLeaderboard
 function network.fetchLeaderboard()
     local host, port = "localhost", 50000
     local tcp = socket.tcp()
@@ -74,25 +72,8 @@ function network.connectAndFetchState(playerPieces, enemyPieces, board, turn)
                     if not response then
                         errorMessage = "Erreur de décodage JSON (tentative " .. attempt .. "/" .. maxAttempts .. ") : " .. (decodeErr or "inconnu")
                     else
-                        -- Vider les tableaux existants
-                        while #playerPieces > 0 do table.remove(playerPieces) end
-                        while #enemyPieces > 0 do table.remove(enemyPieces) end
-                        for i = 1, board.getSize() do
-                            for j = 1, board.getSize() do
-                                board.clearTile(i, j)
-                            end
-                        end
-                        -- Remplir les pions
-                        for _, piece in ipairs(response.pions) do
-                            if piece.type == "player" then
-                                table.insert(playerPieces, piece)
-                            else
-                                table.insert(enemyPieces, piece)
-                            end
-                            board.setTile(piece.x, piece.y, piece)
-                        end
-                        turn.setCurrentTurn(response.currentTurn or "player")
-                        return true, nil
+                        combat.updateState(response.pions)
+                        return true, response.currentTurn or "player"
                     end
                 end
             end
@@ -139,10 +120,10 @@ function network.sendMove(piece, targetX, targetY, currentTurn)
     if not response then
         return { success = false, error = "Erreur de décodage JSON : " .. (decodeErr or "inconnu") }
     end
-    if response.currentTurn then
-        currentTurn = response.currentTurn
+    if response.pions then
+        combat.updateState(response.pions)
     end
-    return response
+    return response, response.currentTurn or currentTurn
 end
 
 function network.sendAction(piece, action, targetX, targetY, currentTurn)
@@ -182,10 +163,10 @@ function network.sendAction(piece, action, targetX, targetY, currentTurn)
     if not response then
         return { success = false, error = "Erreur de décodage JSON : " .. (decodeErr or "inconnu") }
     end
-    if response.currentTurn then
-        currentTurn = response.currentTurn
+    if response.pions then
+        combat.updateState(response.pions)
     end
-    return response
+    return response, response.currentTurn or currentTurn
 end
 
 function network.sendEndEnemyTurn(currentTurn)
@@ -220,10 +201,10 @@ function network.sendEndEnemyTurn(currentTurn)
     if not response then
         return { success = false, error = "Erreur de décodage JSON : " .. (decodeErr or "inconnu") }
     end
-    if response.currentTurn then
-        currentTurn = response.currentTurn
+    if response.pions then
+        combat.updateState(response.pions)
     end
-    return response
+    return response, response.currentTurn or currentTurn
 end
 
 return network

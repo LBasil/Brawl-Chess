@@ -9,20 +9,18 @@ public class GameServer {
         GameState gameState = new GameState();
         Board board = new Board(gameState);
         TurnManager turnManager = new TurnManager();
-        LeaderboardManager leaderboardManager = new LeaderboardManager(); // Nouvelle instance
+        LeaderboardManager leaderboardManager = new LeaderboardManager();
 
         try {
             ServerSocket serverSocket = new ServerSocket(50000);
             System.out.println("Serveur démarré sur le port 50000");
 
-            // Initialiser le plateau avec les pions depuis le fichier
             BoardInitializer.initializeBoard(board, gameState);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Client connecté");
 
-                // Lire la requête du client
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
@@ -34,11 +32,10 @@ public class GameServer {
                         String type = jsonRequest.getString("type");
 
                         if (type.equals("move")) {
-                            // Traiter une requête de déplacement
                             JSONObject piece = jsonRequest.getJSONObject("piece");
                             JSONObject target = jsonRequest.getJSONObject("target");
                             String pieceName = piece.getString("name");
-                            int currentX = piece.getInt("x") - 1; // Convertir en indice 0-based
+                            int currentX = piece.getInt("x") - 1;
                             int currentY = piece.getInt("y") - 1;
                             int targetX = target.getInt("x") - 1;
                             int targetY = target.getInt("y") - 1;
@@ -49,19 +46,28 @@ public class GameServer {
                                 response.put("error", "Ce n'est pas votre tour");
                             } else {
                                 if (board.isValidMove(pieceName, currentX, currentY, targetX, targetY)) {
-                                    // Mettre à jour le plateau
+                                    // Conserver les HP actuels
+                                    JSONObject existingPiece = gameState.findPiece(pieceName, currentX + 1, currentY + 1);
+                                    int currentHp = existingPiece.getInt("hp");
                                     board.getBoard()[targetX][targetY] = board.getBoard()[currentX][currentY];
                                     board.getBoard()[currentX][currentY] = null;
-                                    // Mettre à jour le gameState
                                     gameState.updateGameState(pieceName, currentX + 1, currentY + 1, targetX + 1, targetY + 1, false);
+                                    // Mettre à jour les HP de la pièce à sa nouvelle position
+                                    JSONObject movedPiece = gameState.findPiece(pieceName, targetX + 1, targetY + 1);
+                                    movedPiece.put("hp", currentHp);
                                     response.put("success", true);
                                     response.put("piece", new JSONObject()
                                         .put("name", pieceName)
                                         .put("x", targetX + 1)
-                                        .put("y", targetY + 1));
-                                    // Passer au tour suivant
+                                        .put("y", targetY + 1)
+                                        .put("hp", currentHp));
                                     turnManager.switchTurn();
+                                    resetPieceFlags(gameState);
+                                    if (turnManager.isPlayerTurn()) {
+                                        handleTowerAutomaticAction(gameState, board);
+                                    }
                                     response.put("currentTurn", turnManager.getCurrentTurn());
+                                    response.put("pions", gameState.getGameState().getJSONArray("pions"));
                                 } else {
                                     response.put("success", false);
                                     response.put("error", "Déplacement invalide");
@@ -72,7 +78,6 @@ public class GameServer {
                             out.flush();
                             System.out.println("Réponse envoyée : " + response.toString());
                         } else if (type.equals("action")) {
-                            // Traiter une action
                             JSONObject piece = jsonRequest.getJSONObject("piece");
                             JSONObject target = jsonRequest.optJSONObject("target");
                             String pieceName = piece.getString("name");
@@ -89,9 +94,13 @@ public class GameServer {
                             } else {
                                 response = ActionHandler.handleAction(pieceName, action, pieceX, pieceY, targetX, targetY, board, gameState);
                                 if (response.getBoolean("success")) {
-                                    // Passer au tour suivant
                                     turnManager.switchTurn();
+                                    resetPieceFlags(gameState);
+                                    if (turnManager.isPlayerTurn()) {
+                                        handleTowerAutomaticAction(gameState, board);
+                                    }
                                     response.put("currentTurn", turnManager.getCurrentTurn());
+                                    response.put("pions", gameState.getGameState().getJSONArray("pions"));
                                 } else {
                                     response.put("currentTurn", turnManager.getCurrentTurn());
                                 }
@@ -100,21 +109,22 @@ public class GameServer {
                             out.flush();
                             System.out.println("Réponse envoyée : " + response.toString());
                         } else if (type.equals("endEnemyTurn")) {
-                            // L'ennemi passe son tour
                             JSONObject response = new JSONObject();
                             if (turnManager.getCurrentTurn().equals("enemy")) {
                                 turnManager.switchTurn();
+                                resetPieceFlags(gameState);
+                                handleTowerAutomaticAction(gameState, board);
                                 response.put("success", true);
                             } else {
                                 response.put("success", false);
                                 response.put("error", "Ce n'est pas le tour de l'ennemi");
                             }
                             response.put("currentTurn", turnManager.getCurrentTurn());
+                            response.put("pions", gameState.getGameState().getJSONArray("pions"));
                             out.println(response.toString());
                             out.flush();
                             System.out.println("Réponse envoyée : " + response.toString());
                         } else if (type.equals("leaderboard")) {
-                            // Répondre avec le classement
                             JSONObject response = new JSONObject();
                             response.put("scores", leaderboardManager.getLeaderboard());
                             out.println(response.toString());
@@ -131,10 +141,11 @@ public class GameServer {
                         System.out.println("Erreur JSON : " + e.getMessage());
                     }
                 } else {
-                    // Réponse initiale si aucune requête ou requête vide
                     JSONObject response = new JSONObject();
                     response.put("pions", gameState.getGameState().getJSONArray("pions"));
                     response.put("currentTurn", turnManager.getCurrentTurn());
+                    handleTowerAutomaticAction(gameState, board);
+                    response.put("pions", gameState.getGameState().getJSONArray("pions"));
                     out.println(response.toString());
                     out.flush();
                     System.out.println("Réponse envoyée (requête vide/null) : " + response.toString());
@@ -144,6 +155,46 @@ public class GameServer {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void resetPieceFlags(GameState gameState) {
+        JSONArray pions = gameState.getGameState().getJSONArray("pions");
+        for (int i = 0; i < pions.length(); i++) {
+            JSONObject piece = pions.getJSONObject(i);
+            piece.put("hasMoved", false);
+            piece.put("hasUsedAction", false);
+        }
+    }
+
+    private static void handleTowerAutomaticAction(GameState gameState, Board board) {
+        JSONArray pions = gameState.getGameState().getJSONArray("pions");
+        for (int i = 0; i < pions.length(); i++) {
+            JSONObject piece = pions.getJSONObject(i);
+            if (piece.getString("name").equals("Tourelle") && piece.getString("type").equals("player") && piece.getInt("hp") > 0 && !piece.getBoolean("hasUsedAction")) {
+                int pieceX = piece.getInt("x") - 1;
+                int pieceY = piece.getInt("y") - 1;
+                System.out.println("Vérification Tourelle à (" + (pieceX + 1) + "," + (pieceY + 1) + ") avec HP: " + piece.getInt("hp"));
+                int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+                for (int[] dir : directions) {
+                    int targetX = pieceX + dir[0];
+                    int targetY = pieceY + dir[1];
+                    if (targetX >= 0 && targetX < 8 && targetY >= 0 && targetY < 8) {
+                        JSONObject targetPiece = gameState.findPieceAt(targetX + 1, targetY + 1);
+                        if (targetPiece != null && targetPiece.getString("type").equals("enemy") && targetPiece.getInt("hp") > 0) {
+                            System.out.println("Tourelle trouve un ennemi à (" + (targetX + 1) + "," + (targetY + 1) + ")");
+                            JSONObject response = ActionHandler.handleAction("Tourelle", "attack", pieceX, pieceY, targetX, targetY, board, gameState);
+                            if (response.getBoolean("success")) {
+                                System.out.println("Tourelle attaque automatiquement un ennemi à (" + (targetX + 1) + "," + (targetY + 1) + ")");
+                            } else {
+                                System.out.println("Échec de l'attaque automatique : " + response.optString("error", "raison inconnue"));
+                            }
+                            return;
+                        }
+                    }
+                }
+                System.out.println("Aucun ennemi trouvé à 1 case de la Tourelle.");
+            }
         }
     }
 }

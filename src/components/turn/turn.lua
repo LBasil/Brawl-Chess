@@ -18,10 +18,10 @@ function turn.update(dt, combat)
     if turn.currentTurn == "enemy" and enemyTurnTimer > 0 then
         enemyTurnTimer = enemyTurnTimer - dt
         if enemyTurnTimer <= 0 then
-            local response = combat.network.sendEndEnemyTurn(turn.currentTurn)
+            local response, newTurn = combat.network.sendEndEnemyTurn(turn.currentTurn)
             if response.success then
                 print("Tour de l'ennemi terminé")
-                turn.currentTurn = response.currentTurn
+                turn.setCurrentTurn(newTurn)
             end
         end
     end
@@ -44,6 +44,9 @@ end
 
 function turn.setCurrentTurn(newTurn)
     turn.currentTurn = newTurn
+    if turn.currentTurn == "enemy" then
+        turn.setEnemyTurn()
+    end
 end
 
 return turn
