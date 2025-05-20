@@ -46,13 +46,11 @@ public class GameServer {
                                 response.put("error", "Ce n'est pas votre tour");
                             } else {
                                 if (board.isValidMove(pieceName, currentX, currentY, targetX, targetY)) {
-                                    // Conserver les HP actuels
                                     JSONObject existingPiece = gameState.findPiece(pieceName, currentX + 1, currentY + 1);
                                     int currentHp = existingPiece.getInt("hp");
                                     board.getBoard()[targetX][targetY] = board.getBoard()[currentX][currentY];
                                     board.getBoard()[currentX][currentY] = null;
                                     gameState.updateGameState(pieceName, currentX + 1, currentY + 1, targetX + 1, targetY + 1, false);
-                                    // Mettre à jour les HP de la pièce à sa nouvelle position
                                     JSONObject movedPiece = gameState.findPiece(pieceName, targetX + 1, targetY + 1);
                                     movedPiece.put("hp", currentHp);
                                     response.put("success", true);
@@ -171,7 +169,8 @@ public class GameServer {
         JSONArray pions = gameState.getGameState().getJSONArray("pions");
         for (int i = 0; i < pions.length(); i++) {
             JSONObject piece = pions.getJSONObject(i);
-            if (piece.getString("name").equals("Tourelle") && piece.getString("type").equals("player") && piece.getInt("hp") > 0 && !piece.getBoolean("hasUsedAction")) {
+            String pieceName = piece.getString("name");
+            if (pieceName.equals("Tourelle") && piece.getString("type").equals("player") && piece.getInt("hp") > 0 && !piece.getBoolean("hasUsedAction")) {
                 int pieceX = piece.getInt("x") - 1;
                 int pieceY = piece.getInt("y") - 1;
                 System.out.println("Vérification Tourelle à (" + (pieceX + 1) + "," + (pieceY + 1) + ") avec HP: " + piece.getInt("hp"));
@@ -183,7 +182,8 @@ public class GameServer {
                         JSONObject targetPiece = gameState.findPieceAt(targetX + 1, targetY + 1);
                         if (targetPiece != null && targetPiece.getString("type").equals("enemy") && targetPiece.getInt("hp") > 0) {
                             System.out.println("Tourelle trouve un ennemi à (" + (targetX + 1) + "," + (targetY + 1) + ")");
-                            JSONObject response = ActionHandler.handleAction("Tourelle", "attack", pieceX, pieceY, targetX, targetY, board, gameState);
+                            PieceRules rules = PieceRulesFactory.getRules(pieceName);
+                            JSONObject response = rules.handleAction("attack", pieceX, pieceY, targetX, targetY, piece, board.getBoard(), gameState);
                             if (response.getBoolean("success")) {
                                 System.out.println("Tourelle attaque automatiquement un ennemi à (" + (targetX + 1) + "," + (targetY + 1) + ")");
                             } else {

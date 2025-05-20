@@ -11,6 +11,7 @@ public class ActionHandler {
             response.put("error", "Pion non trouvé");
             return response;
         }
-        return PieceRules.handleAction(pieceName, action, pieceX, pieceY, targetX, targetY, piece, board.getBoard(), gameState);
+        PieceRules rules = PieceRulesFactory.getRules(pieceName);
+        return rules.handleAction(action, pieceX, pieceY, targetX, targetY, piece, board.getBoard(), gameState);
     }
 }

@@ -10,7 +10,6 @@ public class Board {
     public Board(GameState gameState) {
         this.board = new String[BOARD_SIZE][BOARD_SIZE];
         this.gameState = gameState;
-        // Initialiser le plateau à null
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
                 board[i][j] = null;
@@ -23,11 +22,11 @@ public class Board {
     }
 
     public boolean isValidMove(String pieceName, int currentX, int currentY, int targetX, int targetY) {
-        // Trouver le pion dans gameState
         JSONObject piece = gameState.findPiece(pieceName, currentX + 1, currentY + 1);
         if (piece == null) {
             return false;
         }
-        return PieceRules.isValidMove(pieceName, piece, currentX, currentY, targetX, targetY, board);
+        PieceRules rules = PieceRulesFactory.getRules(pieceName);
+        return rules.isValidMove(piece, currentX, currentY, targetX, targetY, board);
     }
 }
