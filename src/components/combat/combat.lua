@@ -9,6 +9,9 @@ combat.input = require("src.components.input.input")
 
 combat.playerPieces = {}
 combat.enemyPieces = {}
+combat.selectedPiece = nil
+combat.actionButtonActive = false
+combat.actionMode = nil
 
 function combat.load()
     combat.board.init()
@@ -17,10 +20,11 @@ function combat.load()
 end
 
 function combat.enterCombat()
-    local success, errorMsg = combat.network.connectAndFetchState(combat.playerPieces, combat.enemyPieces, combat.board, combat.turn)
+    local success, newTurn = combat.network.connectAndFetchState(combat.playerPieces, combat.enemyPieces, combat.board, combat.turn)
     if not success then
-        combat.input.setErrorMessage(errorMsg)
+        combat.input.setErrorMessage(newTurn)
     else
+        combat.turn.setCurrentTurn(newTurn)
         for _, piece in ipairs(combat.playerPieces) do
             combat.pieces.assignSprite(piece, false)
         end
@@ -35,7 +39,6 @@ function combat.update(dt)
 end
 
 function combat.updateState(pions)
-    -- Vider les tableaux existants
     while #combat.playerPieces > 0 do table.remove(combat.playerPieces) end
     while #combat.enemyPieces > 0 do table.remove(combat.enemyPieces) end
     for i = 1, combat.board.getSize() do
@@ -43,7 +46,6 @@ function combat.updateState(pions)
             combat.board.clearTile(i, j)
         end
     end
-    -- Remplir avec les nouveaux pions
     for _, piece in ipairs(pions) do
         if piece.type == "player" then
             table.insert(combat.playerPieces, piece)
@@ -52,21 +54,23 @@ function combat.updateState(pions)
         end
         combat.board.setTile(piece.x, piece.y, piece)
     end
-    -- Réassigner les sprites
     for _, piece in ipairs(combat.playerPieces) do
         combat.pieces.assignSprite(piece, false)
     end
     for _, piece in ipairs(combat.enemyPieces) do
         combat.pieces.assignSprite(piece, true)
     end
+    combat.selectedPiece = nil
+    combat.actionButtonActive = false
+    combat.actionMode = nil
 end
 
 function combat.draw()
-    combat.render.draw(combat.board, combat.playerPieces, combat.enemyPieces, combat.input.getErrorMessage(), combat.input.getActionMode(), combat.turn)
+    combat.render.draw(combat.board, combat.playerPieces, combat.enemyPieces, combat.input.getErrorMessage(), combat.actionMode, combat.turn, combat.selectedPiece, combat.actionButtonActive)
 end
 
 function combat.mousepressed(x, y, button)
-    combat.input.mousepressed(x, y, button, combat.board, combat.playerPieces, combat.enemyPieces, combat.network, combat.pieces, combat.turn)
+    combat.input.mousepressed(x, y, button, combat.board, combat.playerPieces, combat.enemyPieces, combat.network, combat.pieces, combat.turn, combat)
 end
 
 return combat

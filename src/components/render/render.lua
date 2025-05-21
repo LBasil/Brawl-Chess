@@ -1,6 +1,6 @@
 local render = {}
 
-function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode, turn)
+function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode, turn, selectedPiece, actionButtonActive)
     local boardSize = board.getSize()
     local tileSize = board.getTileSize()
     local boardX, boardY = board.getOffset()
@@ -15,7 +15,11 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
         if piece.hp > 0 then
             local spriteWidth, spriteHeight = piece.sprite:getWidth(), piece.sprite:getHeight()
             local scale = (tileSize - 10) / math.max(spriteWidth, spriteHeight)
-            love.graphics.setColor(1, 1, 1)
+            if selectedPiece and piece == selectedPiece then
+                love.graphics.setColor(0, 1, 0)
+            else
+                love.graphics.setColor(1, 1, 1)
+            end
             love.graphics.draw(piece.sprite, boardX + (piece.x-1) * tileSize + 5, boardY + (piece.y-1) * tileSize + 5, 0, scale, scale)
             love.graphics.setColor(1, 1, 1)
             local text = "HP: " .. math.floor(piece.hp) .. "/3"
@@ -40,6 +44,19 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
             love.graphics.printf(text, boardX + (piece.x-1) * tileSize, boardY + (piece.y-1) * tileSize, tileSize, "center")
         end
     end
+
+    local buttonX = boardX + (boardSize * tileSize) / 2 - 50
+    local buttonY = boardY + boardSize * tileSize + 20
+    local buttonWidth = 100
+    local buttonHeight = 40
+    if actionButtonActive then
+        love.graphics.setColor(0, 1, 0, 1)
+    else
+        love.graphics.setColor(0.5, 0.5, 0.5, 0.5)
+    end
+    love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf("Action", buttonX, buttonY + 10, buttonWidth, "center")
 
     if errorMessage then
         love.graphics.setColor(1, 0, 0)
