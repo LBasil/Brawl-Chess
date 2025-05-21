@@ -39,6 +39,8 @@ function network.fetchLeaderboard()
 end
 
 function network.connectAndFetchState(playerPieces, enemyPieces, board, turn)
+    if not playerPieces then playerPieces = {} end
+    if not enemyPieces then enemyPieces = {} end
     local host, port = "localhost", 50000
     local maxAttempts = 3
     local attempt = 1

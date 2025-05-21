@@ -20,17 +20,14 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
     local tileSize = board.getTileSize()
     local boardX, boardY = board.getOffset()
 
-    -- Bouton Action : position et taille
     local buttonX = boardX + (boardSize * tileSize) / 2 - 50
     local buttonY = boardY + boardSize * tileSize + 20
     local buttonWidth = 100
     local buttonHeight = 40
 
-    -- Vérifier si le clic est sur le bouton Action
     if x >= buttonX and x <= buttonX + buttonWidth and y >= buttonY and y <= buttonY + buttonHeight then
         if combat.actionButtonActive and turn.getCurrentTurn() == "player" then
             if actionMode then
-                -- Désélectionner si on re-clique sur le bouton en mode action
                 combat.selectedPiece = nil
                 combat.actionButtonActive = false
                 actionMode = nil
@@ -45,19 +42,18 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
         return
     end
 
-    -- Convertir les coordonnées de l'écran en coordonnées de la grille
     local gridX = math.floor((x - boardX) / tileSize) + 1
     local gridY = math.floor((y - boardY) / tileSize) + 1
 
-    -- Vérifier si le clic est dans les limites du plateau
     if gridX >= 1 and gridX <= boardSize and gridY >= 1 and gridY <= boardSize then
         if turn.getCurrentTurn() == "player" then
             if actionMode == "attack" then
                 local piece = combat.selectedPiece
-                if piece and piece.name ~= "Tourelle" and not piece.hasUsedAction then -- Exclure la Tourelle
+                if piece and piece.name ~= "Tourelle" and not piece.hasUsedAction and not piece.hasUsedAttackInGame then
                     local response, newTurn = network.sendAction(piece, "attack", gridX, gridY, turn.getCurrentTurn())
                     if response.success then
                         turn.setCurrentTurn(newTurn)
+                        piece.hasUsedAttackInGame = true -- Mettre à jour côté client
                         actionMode = nil
                         combat.actionMode = nil
                         combat.selectedPiece = nil
@@ -78,8 +74,8 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
                 end
                 if piece then
                     combat.selectedPiece = piece
-                    -- Activer le bouton Action uniquement si le pion n'est pas une Tourelle et peut agir
-                    combat.actionButtonActive = (piece.name ~= "Tourelle" and not piece.hasUsedAction and piece.hp > 0)
+                    -- Activer le bouton Action uniquement si possible
+                    combat.actionButtonActive = (piece.name ~= "Tourelle" and not piece.hasUsedAction and not piece.hasUsedAttackInGame and piece.hp > 0)
                     errorMessage = nil
                 else
                     if combat.selectedPiece then

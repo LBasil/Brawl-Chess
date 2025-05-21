@@ -9,8 +9,8 @@ public class PieceRulesFactory {
 
     static {
         rulesMap.put("Tourelle", new TowerRules());
+        rulesMap.put("Sniper", new SniperRules());
         // Ajouter d'autres types de pions ici à l'avenir, par exemple :
-        // rulesMap.put("Sniper", new SniperRules());
         // rulesMap.put("Mur", new WallRules());
     }
 
@@ -22,7 +22,7 @@ public class PieceRulesFactory {
 class DefaultRules implements PieceRules {
     @Override
     public boolean isValidMove(JSONObject piece, int currentX, int currentY, int targetX, int targetY, String[][] board) {
-        return false; // Par défaut, aucun mouvement n'est valide
+        return false;
     }
 
     @Override

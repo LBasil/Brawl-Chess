@@ -7,8 +7,8 @@ combat.turn = require("src.components.turn.turn")
 combat.render = require("src.components.render.render")
 combat.input = require("src.components.input.input")
 
-combat.playerPieces = {}
-combat.enemyPieces = {}
+combat.playerPieces = {} -- Initialisation explicite
+combat.enemyPieces = {}  -- Initialisation explicite
 combat.selectedPiece = nil
 combat.actionButtonActive = false
 combat.actionMode = nil
@@ -23,6 +23,9 @@ function combat.enterCombat()
     local success, newTurn = combat.network.connectAndFetchState(combat.playerPieces, combat.enemyPieces, combat.board, combat.turn)
     if not success then
         combat.input.setErrorMessage(newTurn)
+        -- Assurer que les tableaux restent valides même en cas d'échec
+        if not combat.playerPieces then combat.playerPieces = {} end
+        if not combat.enemyPieces then combat.enemyPieces = {} end
     else
         combat.turn.setCurrentTurn(newTurn)
         for _, piece in ipairs(combat.playerPieces) do
@@ -39,8 +42,8 @@ function combat.update(dt)
 end
 
 function combat.updateState(pions)
-    while #combat.playerPieces > 0 do table.remove(combat.playerPieces) end
-    while #combat.enemyPieces > 0 do table.remove(combat.enemyPieces) end
+    combat.playerPieces = {} -- Réinitialiser explicitement
+    combat.enemyPieces = {}  -- Réinitialiser explicitement
     for i = 1, combat.board.getSize() do
         for j = 1, combat.board.getSize() do
             combat.board.clearTile(i, j)

@@ -162,6 +162,7 @@ public class GameServer {
             JSONObject piece = pions.getJSONObject(i);
             piece.put("hasMoved", false);
             piece.put("hasUsedAction", false);
+            // Ne pas réinitialiser hasUsedAttackInGame pour le Sniper
         }
     }
 
