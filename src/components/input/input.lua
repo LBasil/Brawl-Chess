@@ -53,7 +53,17 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
                     local response, newTurn = network.sendAction(piece, "attack", gridX, gridY, turn.getCurrentTurn())
                     if response.success then
                         turn.setCurrentTurn(newTurn)
-                        piece.hasUsedAttackInGame = true -- Mettre à jour côté client
+                        if piece.name == "Kamikaze" then
+                            -- Supprimer le Kamikaze côté client après l'action
+                            for i, p in ipairs(playerPieces) do
+                                if p == piece then
+                                    table.remove(playerPieces, i)
+                                    break
+                                end
+                            end
+                        elseif piece.name == "Sniper" then
+                            piece.hasUsedAttackInGame = true
+                        end
                         actionMode = nil
                         combat.actionMode = nil
                         combat.selectedPiece = nil
@@ -74,8 +84,7 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
                 end
                 if piece then
                     combat.selectedPiece = piece
-                    -- Activer le bouton Action uniquement si possible
-                    combat.actionButtonActive = (piece.name ~= "Tourelle" and not piece.hasUsedAction and not piece.hasUsedAttackInGame and piece.hp > 0)
+                    combat.actionButtonActive = (piece.name ~= "Tourelle" and not piece.hasUsedAction and not (piece.name == "Sniper" and piece.hasUsedAttackInGame) and piece.hp > 0)
                     errorMessage = nil
                 else
                     if combat.selectedPiece then

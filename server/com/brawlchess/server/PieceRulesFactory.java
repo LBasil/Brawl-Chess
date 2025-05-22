@@ -10,6 +10,7 @@ public class PieceRulesFactory {
     static {
         rulesMap.put("Tourelle", new TowerRules());
         rulesMap.put("Sniper", new SniperRules());
+        rulesMap.put("Kamikaze", new KamikazeRules());
         // Ajouter d'autres types de pions ici à l'avenir, par exemple :
         // rulesMap.put("Mur", new WallRules());
     }
