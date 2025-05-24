@@ -11,19 +11,25 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(boardImage, boardX, boardY, 0, scale, scale)
 
-    -- Vérifier que playerPieces n'est pas nil
     if playerPieces and type(playerPieces) == "table" then
         for _, piece in ipairs(playerPieces) do
             if piece and piece.hp > 0 then
                 local spriteWidth, spriteHeight = piece.sprite:getWidth(), piece.sprite:getHeight()
                 local scale = (tileSize - 10) / math.max(spriteWidth, spriteHeight)
                 if selectedPiece and piece == selectedPiece then
-                    love.graphics.setColor(0, 1, 0)
+                    love.graphics.setColor(0, 1, 0, 0.5) -- Vert pour sélection
+                    if piece.shield and piece.shield > 0 then
+                        love.graphics.setColor(0, 1, 1, 0.5) -- Vert + Violet (cyan)
+                    end
                 else
-                    love.graphics.setColor(1, 1, 1)
+                    if piece.shield and piece.shield > 0 then
+                        love.graphics.setColor(0.5, 0, 0.5, 1) -- Violet pour bouclier
+                    else
+                        love.graphics.setColor(1, 1, 1, 1)
+                    end
                 end
                 love.graphics.draw(piece.sprite, boardX + (piece.x-1) * tileSize + 5, boardY + (piece.y-1) * tileSize + 5, 0, scale, scale)
-                love.graphics.setColor(1, 1, 1)
+                love.graphics.setColor(1, 1, 1, 1)
                 local text = "HP: " .. math.floor(piece.hp) .. "/3"
                 if piece.shield and piece.shield > 0 then
                     text = text .. "\nShield: " .. piece.shield
@@ -33,15 +39,18 @@ function render.draw(board, playerPieces, enemyPieces, errorMessage, actionMode,
         end
     end
 
-    -- Vérifier que enemyPieces n'est pas nil
     if enemyPieces and type(enemyPieces) == "table" then
         for _, piece in ipairs(enemyPieces) do
             if piece and piece.hp > 0 then
                 local spriteWidth, spriteHeight = piece.sprite:getWidth(), piece.sprite:getHeight()
                 local scale = (tileSize - 10) / math.max(spriteWidth, spriteHeight)
-                love.graphics.setColor(1, 1, 1)
+                if piece.shield and piece.shield > 0 then
+                    love.graphics.setColor(0.5, 0, 0.5, 1) -- Violet pour bouclier
+                else
+                    love.graphics.setColor(1, 1, 1, 1)
+                end
                 love.graphics.draw(piece.sprite, boardX + (piece.x-1) * tileSize + 5, boardY + (piece.y-1) * tileSize + 5, 0, scale, scale)
-                love.graphics.setColor(1, 1, 1)
+                love.graphics.setColor(1, 1, 1, 1)
                 local text = "HP: " .. math.floor(piece.hp)
                 if piece.shield and piece.shield > 0 then
                     text = text .. "\nShield: " .. piece.shield

@@ -30,7 +30,6 @@ public class SniperRules implements PieceRules {
             response.put("error", "Action non reconnue");
             return response;
         }
-        // Vérifier si le Sniper a déjà utilisé son attaque dans la partie
         if (piece.optBoolean("hasUsedAttackInGame", false)) {
             response.put("success", false);
             response.put("error", "Le Sniper a déjà utilisé son attaque dans cette partie");
@@ -52,15 +51,15 @@ public class SniperRules implements PieceRules {
             response.put("error", "Aucune cible à cette position");
             return response;
         }
-        int targetHp = targetPiece.getInt("hp") - 1;
-        targetPiece.put("hp", targetHp);
+        int damage = 1; // Dégât de base du Sniper
+        GameServer.applyDamage(targetPiece, damage);
+        int targetHp = targetPiece.getInt("hp");
         System.out.println("HP de la cible après attaque du Sniper : " + targetHp);
         if (targetHp <= 0) {
             board[targetX][targetY] = null;
             gameState.removePiece(targetPiece.getString("name"), targetX + 1, targetY + 1);
             System.out.println("Cible retirée à (" + (targetX + 1) + "," + (targetY + 1) + ")");
         }
-        // Marquer l'attaque comme utilisée pour toute la partie
         piece.put("hasUsedAttackInGame", true);
         piece.put("hasUsedAction", true);
         response.put("success", true);

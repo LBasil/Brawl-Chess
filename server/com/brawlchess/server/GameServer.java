@@ -162,7 +162,6 @@ public class GameServer {
             JSONObject piece = pions.getJSONObject(i);
             piece.put("hasMoved", false);
             piece.put("hasUsedAction", false);
-            // Ne pas réinitialiser hasUsedAttackInGame pour le Sniper
         }
     }
 
@@ -196,6 +195,18 @@ public class GameServer {
                 }
                 System.out.println("Aucun ennemi trouvé à 1 case de la Tourelle.");
             }
+        }
+    }
+
+    public static void applyDamage(JSONObject targetPiece, int damage) {
+        int shield = targetPiece.optInt("shield", 0);
+        if (shield > 0) {
+            targetPiece.put("shield", shield - 1);
+            if (damage > 1) {
+                targetPiece.put("hp", targetPiece.getInt("hp") - (damage - 1));
+            }
+        } else {
+            targetPiece.put("hp", targetPiece.getInt("hp") - damage);
         }
     }
 }

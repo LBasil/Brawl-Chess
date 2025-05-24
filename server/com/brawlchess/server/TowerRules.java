@@ -46,8 +46,9 @@ public class TowerRules implements PieceRules {
                 response.put("error", "Cible doit être un ennemi");
                 return response;
             }
-            int targetHp = targetPiece.getInt("hp") - 1;
-            targetPiece.put("hp", targetHp);
+            int damage = 1; // Dégât de base de la Tourelle
+            GameServer.applyDamage(targetPiece, damage);
+            int targetHp = targetPiece.getInt("hp");
             System.out.println("HP de l'ennemi après attaque : " + targetHp);
             if (targetHp <= 0) {
                 board[targetX][targetY] = null;

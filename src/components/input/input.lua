@@ -34,7 +34,7 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
                 combat.actionMode = nil
                 errorMessage = nil
             else
-                actionMode = "attack"
+                actionMode = combat.selectedPiece and combat.selectedPiece.name == "Bouclier" and "shield" or "attack"
                 combat.actionMode = actionMode
                 errorMessage = nil
             end
@@ -47,14 +47,14 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
 
     if gridX >= 1 and gridX <= boardSize and gridY >= 1 and gridY <= boardSize then
         if turn.getCurrentTurn() == "player" then
-            if actionMode == "attack" then
+            if actionMode == "shield" or actionMode == "attack" then
                 local piece = combat.selectedPiece
-                if piece and piece.name ~= "Tourelle" and not piece.hasUsedAction and not piece.hasUsedAttackInGame then
-                    local response, newTurn = network.sendAction(piece, "attack", gridX, gridY, turn.getCurrentTurn())
+                if piece and piece.name ~= "Tourelle" and not piece.hasUsedAction and not (piece.name == "Sniper" and piece.hasUsedAttackInGame) then
+                    local action = actionMode
+                    local response, newTurn = network.sendAction(piece, action, gridX, gridY, turn.getCurrentTurn())
                     if response.success then
                         turn.setCurrentTurn(newTurn)
                         if piece.name == "Kamikaze" then
-                            -- Supprimer le Kamikaze côté client après l'action
                             for i, p in ipairs(playerPieces) do
                                 if p == piece then
                                     table.remove(playerPieces, i)

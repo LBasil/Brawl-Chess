@@ -2,7 +2,7 @@ package com.brawlchess.server;
 
 import org.json.JSONObject;
 
-public class KamikazeRules implements PieceRules {
+public class ShieldRules implements PieceRules {
     @Override
     public boolean isValidMove(JSONObject piece, int currentX, int currentY, int targetX, int targetY, String[][] board) {
         if (targetX < 0 || targetX >= 8 || targetY < 0 || targetY >= 8) {
@@ -17,15 +17,15 @@ public class KamikazeRules implements PieceRules {
         if (piece.getBoolean("hasMoved")) {
             return false;
         }
-        int deltaX = targetX - currentX;
-        int deltaY = targetY - currentY;
-        return (deltaX == 0 && deltaY == 1);
+        int deltaX = Math.abs(targetX - currentX);
+        int deltaY = Math.abs(targetY - currentY);
+        return (deltaX <= 1 && deltaY <= 1 && (deltaX + deltaY) == 1); // 1 case dans n'importe quelle direction
     }
 
     @Override
     public JSONObject handleAction(String action, int pieceX, int pieceY, int targetX, int targetY, JSONObject piece, String[][] board, GameState gameState) {
         JSONObject response = new JSONObject();
-        if (!action.equals("attack")) {
+        if (!action.equals("shield")) {
             response.put("success", false);
             response.put("error", "Action non reconnue");
             return response;
@@ -47,23 +47,14 @@ public class KamikazeRules implements PieceRules {
             return response;
         }
         JSONObject targetPiece = gameState.findPieceAt(targetX + 1, targetY + 1);
-        if (targetPiece == null || targetPiece.getString("type").equals("player")) {
+        if (targetPiece == null || targetPiece.getString("type").equals("enemy")) {
             response.put("success", false);
-            response.put("error", "Cible doit être un ennemi adjacent");
+            response.put("error", "Cible doit être un allié adjacent");
             return response;
         }
-        int damage = 1; // Dégât de base du Kamikaze
-        GameServer.applyDamage(targetPiece, damage);
-        int targetHp = targetPiece.getInt("hp");
-        System.out.println("HP de la cible après attaque du Kamikaze : " + targetHp);
-        if (targetHp <= 0) {
-            board[targetX][targetY] = null;
-            gameState.removePiece(targetPiece.getString("name"), targetX + 1, targetY + 1);
-            System.out.println("Cible retirée à (" + (targetX + 1) + "," + (targetY + 1) + ")");
-        }
-        board[pieceX][pieceY] = null;
-        gameState.removePiece(piece.getString("name"), pieceX + 1, pieceY + 1);
-        System.out.println("Kamikaze détruit à (" + (pieceX + 1) + "," + (pieceY + 1) + ")");
+        // Conférer 1 bouclier à l'allié
+        targetPiece.put("shield", targetPiece.optInt("shield", 0) + 1);
+        System.out.println("Bouclier conféré à " + targetPiece.getString("name") + " à (" + (targetX + 1) + "," + (targetY + 1) + ")");
         piece.put("hasUsedAction", true);
         response.put("success", true);
         return response;

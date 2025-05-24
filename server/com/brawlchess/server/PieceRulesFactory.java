@@ -2,7 +2,7 @@ package com.brawlchess.server;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.json.JSONObject;
+import org.json.*;
 
 public class PieceRulesFactory {
     private static final Map<String, PieceRules> rulesMap = new HashMap<>();
@@ -11,6 +11,7 @@ public class PieceRulesFactory {
         rulesMap.put("Tourelle", new TowerRules());
         rulesMap.put("Sniper", new SniperRules());
         rulesMap.put("Kamikaze", new KamikazeRules());
+        rulesMap.put("Bouclier", new ShieldRules());
         // Ajouter d'autres types de pions ici à l'avenir, par exemple :
         // rulesMap.put("Mur", new WallRules());
     }
