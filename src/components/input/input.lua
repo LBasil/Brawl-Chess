@@ -34,7 +34,15 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
                 combat.actionMode = nil
                 errorMessage = nil
             else
-                actionMode = combat.selectedPiece and combat.selectedPiece.name == "Bouclier" and "shield" or "attack"
+                if combat.selectedPiece then
+                    if combat.selectedPiece.name == "Bouclier" then
+                        actionMode = "shield"
+                    elseif combat.selectedPiece.name == "Mur" then
+                        actionMode = "deployWall"
+                    else
+                        actionMode = "attack"
+                    end
+                end
                 combat.actionMode = actionMode
                 errorMessage = nil
             end
@@ -47,9 +55,9 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
 
     if gridX >= 1 and gridX <= boardSize and gridY >= 1 and gridY <= boardSize then
         if turn.getCurrentTurn() == "player" then
-            if actionMode == "shield" or actionMode == "attack" then
+            if actionMode == "shield" or actionMode == "attack" or actionMode == "deployWall" then
                 local piece = combat.selectedPiece
-                if piece and piece.name ~= "Tourelle" and not piece.hasUsedAction and not (piece.name == "Sniper" and piece.hasUsedAttackInGame) then
+                if piece and piece.name ~= "Tourelle" and not piece.hasUsedAction and not (piece.name == "Sniper" and piece.hasUsedAttackInGame) and not (piece.name == "Mur" and piece.hasUsedWallInGame) then
                     local action = actionMode
                     local response, newTurn = network.sendAction(piece, action, gridX, gridY, turn.getCurrentTurn())
                     if response.success then
@@ -63,6 +71,8 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
                             end
                         elseif piece.name == "Sniper" then
                             piece.hasUsedAttackInGame = true
+                        elseif piece.name == "Mur" then
+                            piece.hasUsedWallInGame = true
                         end
                         actionMode = nil
                         combat.actionMode = nil
@@ -84,7 +94,7 @@ function input.mousepressed(x, y, button, board, playerPieces, enemyPieces, netw
                 end
                 if piece then
                     combat.selectedPiece = piece
-                    combat.actionButtonActive = (piece.name ~= "Tourelle" and not piece.hasUsedAction and not (piece.name == "Sniper" and piece.hasUsedAttackInGame) and piece.hp > 0)
+                    combat.actionButtonActive = (piece.name ~= "Tourelle" and not piece.hasUsedAction and not (piece.name == "Sniper" and piece.hasUsedAttackInGame) and not (piece.name == "Mur" and piece.hasUsedWallInGame) and piece.hp > 0)
                     errorMessage = nil
                 else
                     if combat.selectedPiece then

@@ -37,6 +37,12 @@ public class GameState {
         return null;
     }
 
+    public void addPiece(JSONObject piece) {
+        JSONArray pions = gameState.getJSONArray("pions");
+        pions.put(piece);
+        gameState.put("pions", pions);
+    }
+
     public void updateGameState(String name, int oldX, int oldY, int newX, int newY, boolean remove) {
         JSONArray pions = gameState.getJSONArray("pions");
         for (int i = 0; i < pions.length(); i++) {
