@@ -1,0 +1,20 @@
+name: Serveur Java
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Compiler le serveur et les tests
+        run: |
+          mkdir -p bin
+          javac -cp lib/json-20230227.jar -d bin server/com/brawlchess/server/*.java server-test/com/brawlchess/server/*.java
+      - name: Lancer les tests
+        run: java -cp "lib/json-20230227.jar:bin" com.brawlchess.server.RulesTest
